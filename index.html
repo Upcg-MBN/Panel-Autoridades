@@ -815,9 +815,18 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     ejes(y1, H1, maxM);
     ejes(y2, H2, maxF);
     var parcial = s.some(function (p) { return p.parcial; });
-    o.push('<text x="' + PI + '" y="' + (y1 - 10) + '" font-size="13" fill="var(--gris-60)">Stock de casos: expedientes en proceso al cierre de cada ' + (mensual ? 'mes' : 'año') + '</text>');
-    o.push('<text x="' + PI + '" y="' + (y2 - 12) + '" font-size="13" fill="var(--gris-60)">Ingresados y finalizados en el ' + (mensual ? 'mes' : 'año') +
-      (parcial ? ' · el último está en curso y va más claro' : '') + '</text>');
+    // Rótulos de panel con versiones de largo decreciente: se usa la más larga
+    // que cabe (se mide después de dibujar). En celular, la larga se salía.
+    var u = mensual ? 'mes' : 'año';
+    var rotulos = [
+      ['g-cap1', ['Stock de casos: expedientes en proceso al cierre de cada ' + u,
+                  'Stock de casos al cierre de cada ' + u, 'Stock al cierre de cada ' + u]],
+      ['g-cap2', ['Ingresados y finalizados en el ' + u + (parcial ? ' · el último está en curso y va más claro' : ''),
+                  'Ingresados y finalizados en el ' + u + (parcial ? ' · el último, en curso' : ''),
+                  'Ingresados y finalizados por ' + u]]
+    ];
+    o.push('<text id="g-cap1" x="' + PI + '" y="' + (y1 - 10) + '" font-size="13" fill="var(--gris-60)"></text>');
+    o.push('<text id="g-cap2" x="' + PI + '" y="' + (y2 - 12) + '" font-size="13" fill="var(--gris-60)"></text>');
 
     // Panel 1: la mochila, línea de 2 px con lavado al 8 %.
     var pts = s.map(function (p, j) { return cx(j).toFixed(1) + ',' + yM(p.moc).toFixed(1); });
@@ -853,6 +862,13 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     caja.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' +
       'Stock de casos al cierre e ingresados y finalizados por ' + (mensual ? 'mes' : 'año') + '. Los valores están en la tabla de datos.">' +
       '<style>.b1{fill:var(--chart-1)}.b2{fill:var(--chart-2)}.parcial{opacity:.45}</style>' + o.join('') + '</svg>';
+    rotulos.forEach(function (rt) {
+      var t = $(rt[0]), cabe = W - PI - 4;
+      for (var k = 0; k < rt[1].length; k++) {
+        t.textContent = rt[1][k];
+        if (t.getComputedTextLength() <= cabe) break;
+      }
+    });
     G = { PI: PI, paso: paso, n: n, cx: cx, yM: yM, mensual: mensual };
   }
 
@@ -1217,6 +1233,10 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
       }
     }).observe($('grafico'));
   }
+
+  // Los rótulos del gráfico se eligen midiendo el texto: se vuelve a dibujar
+  // cuando carga Roboto, para no medir con la fuente de reemplazo.
+  if (document.fonts) document.fonts.ready.then(function () { if (r && estado.pag === 'resumen') pintarGrafico(); });
 
   // ---- Exportar PDF: informe imprimible ----
   // Sin librería: el modo informe arma la hoja A4 y la impresión del
