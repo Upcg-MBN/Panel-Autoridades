@@ -2,7 +2,7 @@
 <html lang="es-CL">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Carga de trabajo de expedientes · Ministerio de Bienes Nacionales</title>
 <link rel="stylesheet" href="ds/styles.css">
 <link rel="stylesheet" href="ds/dataviz-tokens.css">
@@ -12,37 +12,46 @@
    con elevación 01. Todo el color va por var(--token) del sistema de diseño. */
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0; background:var(--gris-5); color:var(--negro-text); font-family:var(--font-sans); font-size:16px; line-height:1.4}
+/* Densidad adaptativa. El diseño se hizo para 1920 px, pero una laptop con el
+   escalado de Windows al 150 % muestra ~1280 px: todo se veía un tercio más
+   grande. La base va de 16 px (1800 px o más) a 14 px (1280 px) y el CSS de
+   pantalla está en rem, así que todo se ajusta junto. Bajo 1024 px vuelve a
+   16: en tablet y celular el diseño se reorganiza en vez de encoger. */
+html{font-size:16px}
+/* La base mira también el alto: un monitor con la barra de tareas y el
+   navegador deja ~950 px útiles, y el panel debe caber sin desplazarse. */
+@media (min-width:1024px){html{font-size:clamp(14px, min(9.077px + .3846vw, 7.667px + .8333vh), 16px)}}
+body{margin:0; background:var(--gris-5); color:var(--negro-text); font-family:var(--font-sans); font-size:1rem; line-height:1.4}
 :focus-visible{outline:none; box-shadow:var(--focus-ring)}
 ::selection{background:var(--primario-base); color:var(--blanco-base)}
 *{scrollbar-width:thin; scrollbar-color:var(--gris-20) transparent}
-::-webkit-scrollbar{width:10px; height:10px}
+::-webkit-scrollbar{width:0.625rem; height:0.625rem}
 ::-webkit-scrollbar-thumb{background:var(--gris-20); border-radius:var(--radius-pill)}
 ::-webkit-scrollbar-track{background:transparent}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms !important}}
 button{font:inherit; color:inherit}
-.ico{width:20px; height:20px; flex:none; fill:currentColor}
-.ico--22{width:22px; height:22px}
-.ico--24{width:24px; height:24px}
-.ico--18{width:18px; height:18px}
+.ico{width:1.25rem; height:1.25rem; flex:none; fill:currentColor}
+.ico--22{width:1.375rem; height:1.375rem}
+.ico--24{width:1.5rem; height:1.5rem}
+.ico--18{width:1.125rem; height:1.125rem}
 
 /* minmax(0,1fr): sin esto la columna crece hasta el texto más largo y en
    móvil toda la página se desborda hacia la derecha. */
-.app{display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto 4px 1fr 12px; min-height:100vh}
+.app{display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto 0.25rem 1fr 0.75rem; min-height:100vh}
 
 /* ---------- Franja institucional ---------- */
-.cab{background:var(--primario-base); color:var(--blanco-base); min-height:108px;
-  display:flex; align-items:center; gap:32px; padding:0 48px}
+.cab{background:var(--primario-base); color:var(--blanco-base); min-height:6.75rem;
+  display:flex; align-items:center; gap:2rem; padding:0 3rem}
 /* Solo alto: fijar alto y ancho deforma el isologo (Manual de Normas Gráficas). */
-.cab img{height:68px; display:block}
-.cab-txt{display:flex; flex-direction:column; gap:2px; margin-left:16px; min-width:0}
-.cab h1{margin:0; font-family:var(--font-brand); font-weight:700; font-size:32px; line-height:1.15; letter-spacing:.01em}
+.cab img{height:4.25rem; display:block}
+.cab-txt{display:flex; flex-direction:column; gap:2px; margin-left:1rem; min-width:0}
+.cab h1{margin:0; font-family:var(--font-brand); font-weight:700; font-size:2rem; line-height:1.15; letter-spacing:.01em}
 /* Blanco al 90 % y no al 78 % del mockup: a 16 px el 78 % queda bajo 4,5:1 sobre el azul. */
-.cab p{margin:0; font-size:16px; color:rgba(255,255,255,.9)}
-.cab-der{margin-left:auto; display:flex; align-items:center; gap:24px}
-.sello{display:flex; align-items:center; gap:8px; font-size:15px; color:rgba(255,255,255,.9); white-space:nowrap}
-.btn-borde{display:flex; align-items:center; gap:8px; padding:10px 16px; border:1px solid rgba(255,255,255,.55);
-  border-radius:var(--radius-s); background:transparent; color:var(--blanco-base); font-size:15px; cursor:pointer;
+.cab p{margin:0; font-size:1rem; color:rgba(255,255,255,.9)}
+.cab-der{margin-left:auto; display:flex; align-items:center; gap:1.5rem}
+.sello{display:flex; align-items:center; gap:0.5rem; font-size:0.9375rem; color:rgba(255,255,255,.9); white-space:nowrap}
+.btn-borde{display:flex; align-items:center; gap:0.5rem; padding:0.625rem 1rem; border:1px solid rgba(255,255,255,.55);
+  border-radius:var(--radius-s); background:transparent; color:var(--blanco-base); font-size:0.9375rem; cursor:pointer;
   transition:background var(--duration-base) var(--ease-standard)}
 .btn-borde:hover{background:rgba(255,255,255,.12)}
 .filete{background:var(--accent-base)}
@@ -50,82 +59,108 @@ button{font:inherit; color:inherit}
 
 /* ---------- Menú de páginas ---------- */
 .cuerpo{display:flex; min-height:0}
-.menu{width:280px; flex:none; background:var(--blanco-base); border-right:1px solid var(--gris-10);
-  display:flex; flex-direction:column; padding:24px 0; overflow:hidden;
+.menu{width:17.5rem; flex:none; background:var(--blanco-base); border-right:1px solid var(--gris-10);
+  display:flex; flex-direction:column; padding:1.5rem 0; overflow:hidden;
   transition:width var(--duration-base) var(--ease-standard)}
-.app.cerrado .menu{width:76px}
+.app.cerrado .menu{width:4.75rem}
 .app.cerrado .txt{display:none}
-.menu-cab{display:flex; align-items:center; gap:8px; padding:0 20px 12px; min-height:44px}
-.menu-rot{font-size:12px; font-weight:700; letter-spacing:.08em; color:var(--gris-60)}
-.menu-alt{margin-left:auto; width:32px; height:32px; border:0; border-radius:var(--radius-s); background:none;
+.menu-cab{display:flex; align-items:center; gap:0.5rem; padding:0 1.25rem 0.75rem; min-height:2.75rem}
+.menu-rot{font-size:max(12px,0.75rem); font-weight:700; letter-spacing:.08em; color:var(--gris-60)}
+.menu-alt{margin-left:auto; width:2rem; height:2rem; border:0; border-radius:var(--radius-s); background:none;
   color:var(--primario-darken-1); display:grid; place-items:center; cursor:pointer; flex:none}
 .menu-alt:hover{background:var(--secundario-base)}
-.pag{display:flex; align-items:center; gap:14px; width:100%; padding:14px 22px; border:0; border-left:4px solid transparent;
-  background:none; font-size:17px; text-align:left; white-space:nowrap; cursor:pointer}
+.pag{display:flex; align-items:center; gap:0.875rem; width:100%; padding:0.875rem 1.375rem; border:0; border-left:0.25rem solid transparent;
+  background:none; font-size:1.0625rem; text-align:left; white-space:nowrap; cursor:pointer}
 .pag:hover{background:var(--gris-5)}
 .pag[aria-current="page"]{background:var(--secundario-base); color:var(--primario-darken-1);
   border-left-color:var(--primario-darken-1); font-weight:500}
-.menu-pie{margin-top:auto; padding:24px 22px 0; border-top:1px solid var(--gris-10)}
-.menu-pie button{display:flex; align-items:center; gap:14px; padding:4px 0; border:0; background:none;
-  font-size:15px; color:var(--gris-60); cursor:pointer; white-space:nowrap}
+.menu-pie{margin-top:auto; padding:1.5rem 1.375rem 0; border-top:1px solid var(--gris-10)}
+.menu-pie button{display:flex; align-items:center; gap:0.875rem; padding:0.25rem 0; border:0; background:none;
+  font-size:0.9375rem; color:var(--gris-60); cursor:pointer; white-space:nowrap}
 .menu-pie button:hover{color:var(--primario-darken-1)}
 
 /* ---------- Contenido ---------- */
-.contenido{flex:1; min-width:0; padding:32px; display:flex; flex-direction:column; gap:24px}
-.filtros{display:flex; align-items:center; gap:16px; flex-wrap:wrap}
+.contenido{flex:1; min-width:0; padding:2rem; display:flex; flex-direction:column; gap:1.5rem}
+.filtros{display:flex; align-items:center; gap:1rem; flex-wrap:wrap}
 /* <select> nativo dentro del chip: en móvil abre el selector del sistema y
    funciona con teclado y lector de pantalla sin escribir una línea. */
 /* Ancho fijo por chip: un <select> mide lo que su opción más larga, y
    «Ventas por Propuesta Pública» empujaba el aviso a una segunda línea. */
-.chip{position:relative; display:flex; align-items:center; gap:10px; height:48px; padding:0 16px; flex:0 0 236px;
-  background:var(--blanco-base); border:1px solid var(--gris-20); border-radius:var(--radius-s); font-size:16px; cursor:pointer;
+/* Cada chip crece hasta su ancho de diseño, pero no encoge bajo lo que deja
+   leer su valor («Año: 2…» no sirve): si no caben, baja el aviso, no el filtro. */
+.chip{position:relative; display:flex; align-items:center; gap:0.625rem; height:3rem; padding:0 1rem; flex:1 0 12.25rem; max-width:14.75rem;
+  background:var(--blanco-base); border:1px solid var(--gris-20); border-radius:var(--radius-s); font-size:1rem; cursor:pointer;
   transition:border-color var(--duration-base) var(--ease-standard)}
 .chip:hover{border-color:var(--gris-40)}
 .chip:focus-within{box-shadow:var(--focus-ring)}
+/* El anillo lo lleva el chip entero: sin esto, el <select> dibujaba otro adentro. */
+.chip select:focus-visible,.multi-btn:focus-visible{box-shadow:none}
 .chip > .ico:first-child{color:var(--primario-darken-1)}
 .chip-rot{white-space:nowrap}
 .chip select{appearance:none; -webkit-appearance:none; border:0; background:transparent; font:inherit; color:inherit;
-  flex:1; width:0; min-width:0; height:100%; padding:0 30px 0 0; cursor:pointer; outline:none; text-overflow:ellipsis}
-.chip-flecha{position:absolute; right:12px; pointer-events:none; color:var(--gris-50)}
-.chip--region{flex-basis:264px}
-.chip--anio{flex-basis:196px}
-.chip--ancho{flex-basis:300px}
-.enlace{display:flex; align-items:center; gap:8px; padding:12px 16px; border:0; border-radius:var(--radius-s);
-  background:none; font-size:16px; color:var(--primario-darken-1); cursor:pointer}
+  flex:1; width:0; min-width:0; height:100%; padding:0 1.875rem 0 0; cursor:pointer; outline:none; text-overflow:ellipsis}
+.chip-flecha{position:absolute; right:0.75rem; pointer-events:none; color:var(--gris-50)}
+.chip--region{flex-basis:12.5rem; max-width:16.5rem}
+.chip--anio{flex-basis:11rem; max-width:12.25rem}
+.chip--ancho{flex-basis:13rem; max-width:18.75rem}
+/* Trámite: selección múltiple con casillas, como un segmentador de Power BI.
+   Un <select multiple> nativo obliga a Ctrl+clic y nadie lo descubre. */
+.multi{cursor:default}
+.multi-btn{flex:1; min-width:0; height:100%; padding:0 1.875rem 0 0; border:0; background:none; text-align:left;
+  cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; outline:none}
+.multi-panel{position:absolute; top:calc(100% + 0.25rem); left:-1px; right:-1px; z-index:25; min-width:17.5rem; max-height:27.5rem;
+  overflow:auto; padding:0.375rem; background:var(--blanco-base); border:1px solid var(--gris-20); border-radius:var(--radius-s);
+  box-shadow:var(--elevation-03)}
+.multi-op{display:flex; align-items:center; gap:0.625rem; padding:0.4375rem 0.5rem; border-radius:var(--radius-s); font-size:0.9375rem; cursor:pointer}
+.multi-op:hover{background:var(--gris-5)}
+.multi-op input{width:1.125rem; height:1.125rem; margin:0; flex:none; accent-color:var(--primario-darken-1)}
+.multi-todos{font-weight:500; margin-bottom:0.25rem; border-bottom:1px solid var(--gris-10); border-radius:var(--radius-s) var(--radius-s) 0 0}
+.multi-nota{margin:0.25rem 0.5rem 0.5rem; font-size:max(12px,0.8125rem); color:var(--gris-60)}
+.enlace{display:flex; align-items:center; gap:0.5rem; padding:0.75rem 1rem; border:0; border-radius:var(--radius-s);
+  background:none; font-size:1rem; color:var(--primario-darken-1); cursor:pointer}
 .enlace:hover{color:var(--primario-darken-2); background:var(--secundario-base)}
-.estado{margin-left:auto; display:flex; align-items:center; gap:8px; font-size:15px; color:var(--gris-60)}
+.estado{margin-left:auto; display:flex; align-items:center; gap:0.5rem; font-size:0.9375rem; color:var(--gris-60)}
 .estado--alerta{color:var(--error-darken-3)}
+/* En pantalla grande la hoja no existe: sus hijos son ítems de la fila. */
+.filtros-hoja{display:contents}
+.btn-filtros,.hoja-cab,.hoja-listo{display:none}
 
-.pagina{display:flex; flex-direction:column; gap:24px; flex:1; min-height:0}
+.pagina{display:flex; flex-direction:column; gap:1.5rem; flex:1; min-height:0}
 .pagina[hidden]{display:none}
-.tarjeta{background:var(--blanco-base); border-radius:var(--radius-m); box-shadow:var(--elevation-01); padding:24px; min-width:0}
-.col{display:flex; flex-direction:column; gap:16px}
-.fila{display:flex; gap:24px; flex:1; min-height:0}
+.tarjeta{background:var(--blanco-base); border-radius:var(--radius-m); box-shadow:var(--elevation-01); padding:1.5rem; min-width:0}
+.col{display:flex; flex-direction:column; gap:1rem}
+.fila{display:flex; gap:1.5rem; flex:1; min-height:0}
 .fila > .ancho{flex:2 1 0}
 .fila > .angosto{flex:1 1 0}
 
 /* ---------- KPI ---------- */
-.kpis{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:24px}
-.kpi{display:flex; flex-direction:column; gap:10px}
-.kpi-rot{display:flex; align-items:center; gap:12px; font-size:15px; color:var(--gris-60)}
+.kpis{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1.5rem}
+.kpi{display:flex; flex-direction:column; gap:0.625rem}
+.kpi-rot{display:flex; align-items:center; gap:0.75rem; font-size:0.9375rem; color:var(--gris-60)}
 .kpi-rot .ico{color:var(--primario-darken-1)}
+/* Cuando el valor lleva un color de estado, el ícono lo acompaña (estándar
+   §8 y mockup): el estado nunca va en color solo. */
+.kpi-rot--verde .ico{color:var(--exito-darken-3)}
+.kpi-rot--rojo .ico{color:var(--error-darken-3)}
+.kpi-rot--ambar .ico{color:var(--chart-estado-alerta)}
 /* Roboto Slab en la cifra: lo pide el mockup y el Manual de Normas Gráficas. */
-.kpi-num{font-family:var(--font-slab); font-size:44px; font-weight:700; line-height:1}
+.kpi-num{font-family:var(--font-slab); font-size:2.75rem; font-weight:700; line-height:1}
 .kpi-num--verde{color:var(--exito-darken-3)}
+.kpi-num--rojo{color:var(--error-darken-3)}
 .kpi-num--ambar{color:var(--chart-estado-alerta)}
-.kpi-pie{display:flex; align-items:center; gap:6px; font-size:14px; color:var(--gris-60)}
+.kpi-pie{display:flex; align-items:center; gap:0.375rem; font-size:0.875rem; color:var(--gris-60)}
 .kpi-pie--sube{color:var(--error-darken-3)}
 .kpi-pie--baja{color:var(--exito-darken-3)}
 
 /* ---------- Tarjetas de gráfico ---------- */
-.t-cab{display:flex; align-items:center; gap:8px 20px; flex-wrap:wrap}
-.t-cab h2{margin:0; font-size:19px; font-weight:500; line-height:1.3}
-.t-sub{margin:-12px 0 0; font-size:14px; color:var(--gris-60)}
-.leyenda{display:flex; flex-wrap:wrap; gap:6px 16px; font-size:14px; color:var(--gris-60)}
-.leyenda span{display:flex; align-items:center; gap:8px}
-.k-linea{width:20px; height:3px; border-radius:2px}
-.k-caja{width:12px; height:12px; border-radius:2px}
-.lienzo{position:relative; flex:1; min-height:360px}
+.t-cab{display:flex; align-items:center; gap:0.5rem 1.25rem; flex-wrap:wrap}
+.t-cab h2{margin:0; font-size:1.1875rem; font-weight:500; line-height:1.3}
+.t-sub{margin:-0.75rem 0 0; font-size:0.875rem; color:var(--gris-60)}
+.leyenda{display:flex; flex-wrap:wrap; gap:0.375rem 1rem; font-size:0.875rem; color:var(--gris-60)}
+.leyenda span{display:flex; align-items:center; gap:0.5rem}
+.k-linea{width:1.25rem; height:3px; border-radius:2px}
+.k-caja{width:0.75rem; height:0.75rem; border-radius:2px}
+.lienzo{position:relative; flex:1; min-height:22.5rem}
 .lienzo > svg{position:absolute; inset:0; display:block; overflow:visible}
 .lienzo:focus-visible{box-shadow:var(--focus-ring); border-radius:var(--radius-s)}
 .vacio{display:grid; place-items:center; height:100%; color:var(--gris-60); text-align:center}
@@ -134,23 +169,25 @@ button{font:inherit; color:inherit}
    azul; el color no codifica la magnitud, el largo ya lo hace. Al elegir una,
    las demás pasan a gris (énfasis). */
 .barras{display:flex; flex-direction:column; gap:2px; overflow:auto; flex:1; min-height:0; margin:0 -4px}
-.barra-fila{display:grid; grid-template-columns:minmax(0,190px) minmax(0,1fr) 72px; align-items:center; gap:12px;
-  width:100%; padding:4px; border:0; border-radius:var(--radius-s); background:none; font-size:14px; text-align:left; cursor:pointer}
+.barra-fila{display:grid; grid-template-columns:minmax(0,11.875rem) minmax(0,1fr) 4.5rem; align-items:center; gap:0.75rem;
+  width:100%; padding:0.25rem; border:0; border-radius:var(--radius-s); background:none; font-size:0.875rem; text-align:left; cursor:pointer}
 .barra-fila:hover{background:var(--gris-5)}
-.barra-fila[aria-pressed="true"]{background:var(--secundario-base)}
+/* Fondo solo con una elegida: con «todos menos uno» pintaba 16 filas. Con
+   varias, el énfasis lo dan las barras (azul las elegidas, gris el resto). */
+.barras.con-uno .barra-fila[aria-pressed="true"]{background:var(--secundario-base)}
 .barra-nom{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.pista{height:14px; background:var(--gris-5); border-radius:var(--radius-s); overflow:hidden}
+.pista{height:0.875rem; background:var(--gris-5); border-radius:var(--radius-s); overflow:hidden}
 .relleno{display:block; height:100%; background:var(--primario-darken-1); border-radius:0 var(--radius-s) var(--radius-s) 0}
 .barras.con-sel .barra-fila:not([aria-pressed="true"]) .relleno{background:var(--gris-30)}
 .barra-val{text-align:right; font-weight:500; font-variant-numeric:tabular-nums}
 
 /* ---------- Mapa ---------- */
 .seg{display:inline-flex; margin-left:auto; border:1px solid var(--gris-20); border-radius:var(--radius-s); overflow:hidden}
-.seg button{padding:8px 14px; border:0; background:var(--blanco-base); font-size:14px; cursor:pointer}
+.seg button{padding:0.5rem 0.875rem; border:0; background:var(--blanco-base); font-size:0.875rem; cursor:pointer}
 .seg button + button{border-left:1px solid var(--gris-20)}
 .seg button:hover{background:var(--gris-5)}
 .seg button[aria-pressed="true"]{background:var(--primario-darken-1); color:var(--blanco-base)}
-.mapa-caja{position:relative; flex:1; min-height:420px}
+.mapa-caja{position:relative; flex:1; min-height:26.25rem}
 .mapa-caja > svg{position:absolute; inset:0; width:100%; height:100%; display:block}
 .reg{stroke:var(--blanco-base); stroke-width:1; vector-effect:non-scaling-stroke; cursor:pointer; outline:none}
 .reg:hover,.reg:focus-visible{stroke:var(--negro-text); stroke-width:2}
@@ -159,87 +196,152 @@ button{font:inherit; color:inherit}
 .reg.sel{stroke:var(--negro-text); stroke-width:2.5}
 .con-sel .reg:not(.sel){opacity:.3}
 .reg--fijo{fill:var(--gris-10); stroke:none; pointer-events:none}
-.panel-rot{font-size:22px; fill:var(--gris-60)}
-.escala{display:flex; flex-wrap:wrap; align-items:center; gap:8px 18px; font-size:13px; color:var(--gris-60)}
+.panel-rot{font-size:1.375rem; fill:var(--gris-60)}
+.escala{display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem 1.125rem; font-size:max(12px,0.8125rem); color:var(--gris-60)}
 .escala b{font-weight:500; color:var(--negro-text)}
-.escala span{display:flex; align-items:center; gap:6px}
-.escala i{width:16px; height:12px; border-radius:2px; display:block}
+.escala span{display:flex; align-items:center; gap:0.375rem}
+.escala i{width:1rem; height:0.75rem; border-radius:2px; display:block}
 
 /* ---------- Tabla de datos (gemela accesible del gráfico) ---------- */
-.tabla summary{font-size:14px; font-weight:500; color:var(--primario-darken-1); cursor:pointer; width:max-content; border-radius:var(--radius-s)}
+.tabla summary{font-size:0.875rem; font-weight:500; color:var(--primario-darken-1); cursor:pointer; width:max-content; border-radius:var(--radius-s)}
 .tabla summary:hover{color:var(--primario-darken-2)}
-.tabla-caja{max-height:280px; overflow:auto; margin-top:8px}
-.tabla table{border-collapse:collapse; width:100%; font-size:13px}
-.tabla thead th{position:sticky; top:0; background:var(--primario-darken-1); color:var(--blanco-base); text-align:right; padding:8px 12px; font-weight:700}
+.tabla-caja{max-height:17.5rem; overflow:auto; margin-top:0.5rem}
+.tabla table{border-collapse:collapse; width:100%; font-size:max(12px,0.8125rem); background:var(--blanco-base)}
+.tabla thead th{position:sticky; top:0; background:var(--primario-darken-1); color:var(--blanco-base); text-align:right; padding:0.5rem 0.75rem; font-weight:700}
 .tabla thead th:first-child{text-align:left}
-.tabla td,.tabla tbody th{padding:6px 12px; border-bottom:1px solid var(--gris-10); text-align:right; font-variant-numeric:tabular-nums}
+.tabla td,.tabla tbody th{padding:0.375rem 0.75rem; border-bottom:1px solid var(--gris-10); text-align:right; font-variant-numeric:tabular-nums}
 .tabla tbody th{text-align:left; font-weight:400}
 .tabla tbody tr:nth-child(even){background:var(--gris-5)}
 
 /* ---------- Tooltip ---------- */
-.tip{position:fixed; z-index:30; min-width:190px; padding:10px 12px; background:var(--blanco-base); border-radius:var(--radius-m);
-  box-shadow:var(--elevation-03); font-size:13px; pointer-events:none}
-.tip-tit{font-weight:500; margin-bottom:6px}
-.tip-fila{display:flex; align-items:center; gap:8px; line-height:1.7}
-.tip-fila b{font-weight:700; font-variant-numeric:tabular-nums; min-width:62px; text-align:right}
+.tip{position:fixed; z-index:30; min-width:11.875rem; padding:0.625rem 0.75rem; background:var(--blanco-base); border-radius:var(--radius-m);
+  box-shadow:var(--elevation-03); font-size:max(12px,0.8125rem); pointer-events:none}
+.tip-tit{font-weight:500; margin-bottom:0.375rem}
+.tip-fila{display:flex; align-items:center; gap:0.5rem; line-height:1.7}
+.tip-fila b{font-weight:700; font-variant-numeric:tabular-nums; min-width:3.875rem; text-align:right}
 .tip-fila span{color:var(--gris-60)}
-.tip-k{width:14px; height:3px; border-radius:2px; flex:none}
-.tip-k--caja{width:10px; height:10px}
+.tip-k{width:0.875rem; height:3px; border-radius:2px; flex:none}
+.tip-k--caja{width:0.625rem; height:0.625rem}
 
 /* ---------- Glosario ---------- */
-dialog{border:0; border-radius:var(--radius-m); box-shadow:var(--elevation-04); padding:0; max-width:640px; width:calc(100% - 32px); color:inherit}
+dialog{border:0; border-radius:var(--radius-m); box-shadow:var(--elevation-04); padding:0; max-width:40rem; width:calc(100% - 2rem); color:inherit}
 dialog::backdrop{background:rgba(0,0,0,.35)}
-.dlg-cab{display:flex; align-items:center; padding:20px 24px; border-bottom:1px solid var(--gris-10)}
-.dlg-cab h2{margin:0; font-size:19px; font-weight:500}
-.dlg-cab button{margin-left:auto; border:0; background:none; width:36px; height:36px; border-radius:var(--radius-s); display:grid; place-items:center; cursor:pointer}
+.dlg-cab{display:flex; align-items:center; padding:1.25rem 1.5rem; border-bottom:1px solid var(--gris-10)}
+.dlg-cab h2{margin:0; font-size:1.1875rem; font-weight:500}
+.dlg-cab button{margin-left:auto; border:0; background:none; width:2.25rem; height:2.25rem; border-radius:var(--radius-s); display:grid; place-items:center; cursor:pointer}
 .dlg-cab button:hover{background:var(--gris-5)}
-dialog dl{margin:0; padding:8px 24px 24px}
-dialog dt{font-weight:700; margin-top:16px}
-dialog dd{margin:4px 0 0; color:var(--gris-70); font-size:15px}
+dialog dl{margin:0; padding:0.5rem 1.5rem 1.5rem}
+dialog dt{font-weight:700; margin-top:1rem}
+dialog dd{margin:0.25rem 0 0; color:var(--gris-70); font-size:0.9375rem}
 
 /* ---------- Responsive ---------- */
-@media (max-width:1500px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* En escritorio el panel ocupa exactamente la pantalla, como una página de
+   Power BI: cabecera y filtros fijos, el gráfico toma el alto que queda y lo
+   que no quepa se desplaza dentro del contenido, no la página entera.
+   Va después de las reglas base: con igual especificidad gana la última. */
+@media (min-width:1024px) and (min-height:600px){
+  .app{height:100vh; min-height:0}
+  .cuerpo{min-height:0; overflow:hidden}
+  .contenido{overflow:auto}
+  .lienzo{min-height:14rem}
+  .mapa-caja{min-height:18rem}
+  /* Piso de la fila: en pantallas muy bajas el contenido se desplaza, en vez
+     de encoger la tarjeta bajo su gráfico y cortarlo. */
+  .fila{min-height:28rem}
+  /* Con la tabla de datos abierta la fila deja de ajustarse a la pantalla:
+     la tarjeta crece con la tabla (antes la tabla se salía de la tarjeta y el
+     gráfico se aplastaba) y el contenido se desplaza. */
+  .fila:has(.tabla[open]){flex:none}
+  .fila:has(.tabla[open]) .lienzo{flex:none; height:22.5rem}
+}
+/* Bajo 1600 px los botones dicen «CSV» y «PDF»: con «Exportar» delante, la
+   cabecera no cabía en una línea en una laptop. */
+@media (max-width:1599px){.btn-largo{display:none}}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:1200px){
   .fila{flex-direction:column; flex:none}
-  .lienzo{flex:none; height:460px}
-  .mapa-caja{flex:none; height:560px}
+  .lienzo{flex:none; height:28.75rem}
+  .mapa-caja{flex:none; height:35rem}
   .barras{overflow:visible}
 }
 @media (max-width:760px){
-  .cab{padding:16px; gap:12px 16px; flex-wrap:wrap}
-  .cab img{height:48px}
-  .cab-txt{margin-left:0}
-  .cab h1{font-size:22px}
-  .cab p{font-size:14px}
-  .cab-der{margin-left:0; width:100%; justify-content:space-between}
+  .cab{padding:0.875rem 1rem; gap:0.5rem 0.75rem; flex-wrap:wrap; min-height:0}
+  .cab img{height:2.5rem}
+  .cab-txt{margin-left:0; flex:1 1 12rem}
+  .cab h1{font-size:1.125rem}
+  .cab p{font-size:0.8125rem}
+  .cab-der{margin-left:0; width:100%; gap:0.5rem}
+  .sello{margin-right:auto; font-size:0.8125rem}
+  /* Exportar: solo ícono y 44 px. Con texto, «Exportar PDF» se salía de la
+     pantalla. El nombre queda en aria-label y title. */
+  .btn-borde{width:2.75rem; height:2.75rem; padding:0; justify-content:center; flex:none}
+  .btn-txt{display:none}
   .cuerpo{flex-direction:column}
   .menu{width:auto; flex-direction:row; padding:0; border-right:0; border-bottom:1px solid var(--gris-10)}
   .app.cerrado .menu{width:auto}
   .app.cerrado .txt{display:inline}
   .menu-cab,.menu-pie{display:none}
-  .pag{justify-content:center; padding:12px; border-left:0; border-bottom:3px solid transparent; font-size:15px}
+  .pag{justify-content:center; padding:0.75rem; border-left:0; border-bottom:3px solid transparent; font-size:0.9375rem}
   .pag[aria-current="page"]{border-bottom-color:var(--primario-darken-1)}
-  .contenido{padding:16px; gap:16px}
-  .chip,.chip--ancho{flex:1 1 100%}
-  .estado{margin-left:0}
-  .kpis{grid-template-columns:1fr; gap:16px}
-  .kpi-num{font-size:36px}
-  .tarjeta{padding:16px}
-  .barra-fila{grid-template-columns:minmax(0,120px) minmax(0,1fr) 60px; gap:8px}
-  .lienzo{height:400px}
-  .mapa-caja{height:440px}
+  .contenido{padding:1rem; gap:1rem}
+  /* Filtros detrás de un botón: apilados ocupaban media pantalla antes del
+     primer dato. El botón dice cuántos hay aplicados; la hoja sube desde abajo,
+     al alcance del pulgar. */
+  .filtros{flex-wrap:nowrap; gap:0.75rem}
+  .btn-filtros{display:flex; align-items:center; gap:0.5rem; flex:none; height:2.75rem; padding:0 1rem;
+    border:1px solid var(--gris-20); border-radius:var(--radius-s); background:var(--blanco-base);
+    font-size:0.9375rem; font-weight:500; color:var(--primario-darken-1); cursor:pointer}
+  .f-cuenta{display:grid; place-items:center; min-width:1.375rem; height:1.375rem; padding:0 0.375rem;
+    border-radius:var(--radius-pill); background:var(--primario-darken-1); color:var(--blanco-base); font-size:0.75rem}
+  .f-cuenta:empty{display:none}
+  .estado{margin-left:0; min-width:0; font-size:0.8125rem}
+  .filtros-hoja{display:none}
+  .filtros.abierto::before{content:""; position:fixed; inset:0; z-index:39; background:rgba(0,0,0,.35)}
+  .filtros.abierto .filtros-hoja{display:flex; flex-direction:column; gap:0.75rem; position:fixed; left:0; right:0; bottom:0;
+    z-index:40; max-height:85vh; overflow:auto; padding:1rem 1rem max(1rem, env(safe-area-inset-bottom));
+    background:var(--blanco-base); border-radius:var(--radius-l) var(--radius-l) 0 0; box-shadow:var(--elevation-05)}
+  .hoja-cab{display:flex; align-items:center}
+  .hoja-cab h2{margin:0; font-size:1.125rem; font-weight:500}
+  .hoja-cab button{margin-left:auto; width:2.75rem; height:2.75rem; border:0; border-radius:var(--radius-s);
+    background:none; display:grid; place-items:center; cursor:pointer}
+  /* Pegado abajo: con la lista de trámites abierta, sigue al alcance del pulgar. */
+  .hoja-listo{display:block; width:100%; min-height:3rem; position:sticky; bottom:0}
+  .filtros-hoja .chip{flex:none; width:100%; max-width:none}
+  .filtros-hoja .enlace{align-self:flex-start}
+  .chip.multi{flex-wrap:wrap; height:auto; min-height:3rem}
+  .chip.multi .multi-btn{height:3rem}
+  .chip.multi .chip-flecha{top:0.875rem}
+  .filtros-hoja .multi-panel{position:static; flex-basis:100%; max-height:none; margin:0 -1rem 0.5rem; min-width:0;
+    border:0; border-top:1px solid var(--gris-10); border-radius:0; box-shadow:none}
+  /* KPI en 2×2 compacto: los cuatro a la vista sin bajar. */
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr)); gap:0.75rem}
+  .tarjeta.kpi{padding:0.875rem}
+  .kpi{gap:0.375rem}
+  .kpi-rot{font-size:0.8125rem; gap:0.5rem}
+  .kpi-rot .ico{width:1.125rem; height:1.125rem}
+  .kpi-num{font-size:1.625rem}
+  .kpi-pie{font-size:0.75rem; align-items:flex-start}
+  .tarjeta{padding:1rem}
+  .barra-fila{grid-template-columns:minmax(0,7.5rem) minmax(0,1fr) 3.75rem; gap:0.5rem}
+  .lienzo{height:25rem}
+  .mapa-caja{height:27.5rem}
   .seg{margin-left:0}
 }
+/* Con el dedo: todo lo que se toca mide al menos 44 px. */
+@media (pointer:coarse){
+  .barra-fila,.seg button,.enlace,.multi-op{min-height:2.75rem}
+  .menu-alt{width:2.75rem; height:2.75rem}
+}
 /* ---------- Exportar PDF: diálogo ---------- */
-.dlg-cuerpo{padding:4px 24px 12px}
-.dlg-nota{margin:12px 0 4px; font-size:14px; color:var(--gris-60)}
-fieldset{border:0; margin:12px 0 0; padding:0}
-legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--gris-60)}
-.opcion{display:flex; align-items:center; gap:12px; padding:8px 6px; border-radius:var(--radius-s); font-size:15px; cursor:pointer}
+.dlg-cuerpo{padding:0.25rem 1.5rem 0.75rem}
+.dlg-nota{margin:0.75rem 0 0.25rem; font-size:0.875rem; color:var(--gris-60)}
+fieldset{border:0; margin:0.75rem 0 0; padding:0}
+legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--gris-60)}
+.opcion{display:flex; align-items:center; gap:0.75rem; padding:0.5rem 0.375rem; border-radius:var(--radius-s); font-size:0.9375rem; cursor:pointer}
 .opcion:hover{background:var(--gris-5)}
-.opcion input{width:18px; height:18px; margin:0; accent-color:var(--primario-darken-1)}
-.dlg-pie{display:flex; justify-content:flex-end; gap:12px; padding:16px 24px; border-top:1px solid var(--gris-10)}
-.btn-pri,.btn-sec{padding:10px 20px; border-radius:var(--radius-s); font-size:15px; cursor:pointer}
+.opcion input{width:1.125rem; height:1.125rem; margin:0; accent-color:var(--primario-darken-1)}
+.dlg-pie{display:flex; justify-content:flex-end; gap:0.75rem; padding:1rem 1.5rem; border-top:1px solid var(--gris-10)}
+.btn-pri,.btn-sec{padding:0.625rem 1.25rem; border-radius:var(--radius-s); font-size:0.9375rem; cursor:pointer}
 .btn-pri{border:0; background:var(--primario-darken-1); color:var(--blanco-base); font-weight:500}
 .btn-pri:hover{background:var(--primario-darken-2)}
 .btn-pri:disabled{background:var(--gris-20); color:var(--gris-50); cursor:not-allowed}
@@ -255,8 +357,8 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
 .informe .cab,.informe .filete,.informe .menu,.informe .filtros,.informe .barra-pie,
 .informe .seg,.informe .pantalla,.informe .tabla summary{display:none}
 .informe .fuera{display:none !important}
-.informe .app,.informe .cuerpo{display:block; min-height:0}
-.informe .contenido{width:182mm; max-width:100%; margin:0 auto; padding:8mm 0; gap:5mm}
+.informe .app,.informe .cuerpo{display:block; min-height:0; height:auto; overflow:visible}
+.informe .contenido{width:182mm; max-width:100%; margin:0 auto; padding:8mm 0; gap:5mm; overflow:visible}
 .informe .informe-cab{display:grid; grid-template-columns:auto 1fr; align-items:center; gap:4mm 6mm;
   padding-bottom:4mm; border-bottom:3px solid var(--primario-base)}
 .informe-cab img{height:15mm; display:block}
@@ -311,8 +413,8 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
     </div>
     <div class="cab-der">
       <div class="sello"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-i="update"></svg><span id="sello">—</span></div>
-      <button type="button" class="btn-borde" id="exportar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-i="descarga"></svg>Exportar CSV</button>
-      <button type="button" class="btn-borde" id="pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-i="imprimir"></svg>Exportar PDF</button>
+      <button type="button" class="btn-borde" id="exportar" aria-label="Exportar CSV" title="Exportar CSV"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-i="descarga"></svg><span class="btn-txt"><span class="btn-largo">Exportar </span>CSV</span></button>
+      <button type="button" class="btn-borde" id="pdf" aria-label="Exportar PDF" title="Exportar PDF"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-i="imprimir"></svg><span class="btn-txt"><span class="btn-largo">Exportar </span>PDF</span></button>
     </div>
   </header>
   <div class="filete"></div>
@@ -337,12 +439,21 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
           <p>Subsecretaría de Bienes Nacionales · Unidad de Planificación y Control de Gestión</p></div>
         <div class="informe-meta"><span id="i-filtros"></span><span id="i-corte"></span><span id="i-fecha"></span></div>
       </header>
-      <div class="filtros" role="group" aria-label="Filtros">
+      <div class="filtros" id="filtros" role="group" aria-label="Filtros">
+        <button type="button" class="btn-filtros" id="f-abrir" aria-expanded="false" aria-controls="f-hoja"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-i="filtro"></svg>Filtros<span class="f-cuenta" id="f-cuenta"></span></button>
+        <div class="filtros-hoja" id="f-hoja">
+        <div class="hoja-cab"><h2>Filtros</h2><button type="button" id="f-cerrar" aria-label="Cerrar filtros"><svg class="ico ico--22" viewBox="0 0 24 24" aria-hidden="true" data-i="cerrar"></svg></button></div>
         <label class="chip chip--region"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-i="globo"></svg><span class="chip-rot">Región:</span><select id="f-region"></select><svg class="ico chip-flecha" viewBox="0 0 24 24" aria-hidden="true" data-i="flecha"></svg></label>
         <label class="chip chip--anio"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-i="calendario"></svg><span class="chip-rot">Año:</span><select id="f-anio"></select><svg class="ico chip-flecha" viewBox="0 0 24 24" aria-hidden="true" data-i="flecha"></svg></label>
         <label class="chip"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-i="categoria"></svg><span class="chip-rot">Grupo:</span><select id="f-grupo"></select><svg class="ico chip-flecha" viewBox="0 0 24 24" aria-hidden="true" data-i="flecha"></svg></label>
-        <label class="chip chip--ancho"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-i="documento"></svg><span class="chip-rot">Trámite:</span><select id="f-tramite"></select><svg class="ico chip-flecha" viewBox="0 0 24 24" aria-hidden="true" data-i="flecha"></svg></label>
+        <div class="chip chip--ancho multi" id="f-tramite"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-i="documento"></svg><span class="chip-rot" id="f-tramite-rot">Trámite:</span>
+          <button type="button" class="multi-btn" id="f-tramite-btn" aria-haspopup="true" aria-expanded="false" aria-controls="f-tramite-panel" aria-labelledby="f-tramite-rot f-tramite-btn">Todos</button>
+          <svg class="ico chip-flecha" viewBox="0 0 24 24" aria-hidden="true" data-i="flecha"></svg>
+          <div class="multi-panel" id="f-tramite-panel" role="group" aria-label="Trámites" hidden></div>
+        </div>
         <button type="button" class="enlace" id="f-reset"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" data-i="reiniciar"></svg>Restablecer filtros</button>
+        <button type="button" class="btn-pri hoja-listo" id="f-listo">Ver resultados</button>
+        </div>
         <div class="estado" id="estado" role="status"></div>
       </div>
 
@@ -464,6 +575,7 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
   var ICONOS = {
     update: '<path transform="translate(3 3)" d="M8 5v5l4.25 2.52.77-1.28-3.52-2.09V5H8zm10 2V0l-2.64 2.64A8.96 8.96 0 0 0 9 0a9 9 0 1 0 9 9h-2a7 7 0 1 1-2.05-4.95L11 7h7z"/>',
     descarga: '<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>',
+    filtro: '<path transform="translate(3 6)" d="M7 12h4v-2H7v2zM0 0v2h18V0H0zm3 7h12V5H3v2z"/>',
     imprimir: '<path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>',
     menu_open: '<path d="M3 18h13v-2H3v2zm0-5h10v-2H3v2zm0-7v2h13V6H3zm18 9.59L17.42 12 21 8.41 19.59 7l-5 5 5 5L21 15.59z"/>',
     menu: '<path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>',
@@ -536,20 +648,43 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
   $('f-grupo').innerHTML = '<option value="">Todos</option>' +
     grupos.map(function (g) { return '<option value="' + esc(g) + '">' + esc(g) + '</option>'; }).join('');
 
-  // El trámite depende del grupo: solo se ofrecen los que pertenecen a él.
-  function opcionesTramite() {
-    var g = $('f-grupo').value, actual = $('f-tramite').value;
-    var lista = D.tramites.filter(function (t) { return !g || t.grupo === g; });
-    $('f-tramite').innerHTML = '<option value="">Todos</option>' + lista.map(function (t) {
-      return '<option value="' + esc(t.nombre) + '">' + esc(t.nombre) + '</option>';
-    }).join('');
-    $('f-tramite').value = lista.some(function (t) { return t.nombre === actual; }) ? actual : '';
+  // Trámites elegidos. Vacío = todos (sin filtro), y así se ve: todas las
+  // casillas marcadas, de modo que desmarcar una deja todos menos esa. Como el
+  // filtro de Excel, desmarcar «Todos» limpia las casillas para elegir desde
+  // cero (`tramNinguno`); mientras no se marque ninguno, se siguen viendo todos.
+  var tramSel = [], tramNinguno = false;
+  function tramitesDelGrupo() {
+    var g = $('f-grupo').value;
+    return D.tramites.filter(function (t) { return !g || t.grupo === g; }).map(function (t) { return t.nombre; });
   }
+  // El trámite depende del grupo: solo se ofrecen los que pertenecen a él, y
+  // una elección que queda fuera del grupo se descarta.
+  function ponerTramites(lista, ninguno) {
+    var validos = tramitesDelGrupo();
+    tramSel = lista.filter(function (n, i) { return validos.indexOf(n) >= 0 && lista.indexOf(n) === i; });
+    if (tramSel.length === validos.length) tramSel = [];
+    tramNinguno = !!ninguno && !tramSel.length;
+    var marcado = function (n) { return !tramNinguno && (!tramSel.length || tramSel.indexOf(n) >= 0); };
+    $('f-tramite-panel').innerHTML =
+      '<label class="multi-op multi-todos"><input type="checkbox" data-todos>Todos</label>' +
+      (tramNinguno ? '<p class="multi-nota">Marca los trámites que quieres ver.</p>' : '') +
+      validos.map(function (n) {
+        return '<label class="multi-op"><input type="checkbox" value="' + esc(n) + '"' +
+          (marcado(n) ? ' checked' : '') + '>' + esc(n) + '</label>';
+      }).join('');
+    var todos = $('f-tramite-panel').querySelector('[data-todos]');
+    todos.checked = !tramNinguno && !tramSel.length;
+    todos.indeterminate = tramSel.length > 0;   // algunos marcados, no todos
+    $('f-tramite-btn').textContent = !tramSel.length ? 'Todos'
+      : tramSel.length === 1 ? tramSel[0] : tramSel.length + ' trámites';
+    $('f-tramite-btn').title = tramSel.join(', ');
+  }
+  function opcionesTramite() { ponerTramites(tramSel, tramNinguno); }
   opcionesTramite();
 
   function filtro() {
     return { anio: $('f-anio').value || null, region: $('f-region').value || null,
-             grupo: $('f-grupo').value || null, tramite: $('f-tramite').value || null };
+             grupo: $('f-grupo').value || null, tramites: tramSel.length ? tramSel.slice() : null };
   }
 
   // La vista va en el hash para mandar por correo exactamente lo que uno mira.
@@ -557,7 +692,7 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
     var f = filtro(), p = ['p=' + estado.pag, 'm=' + estado.metrica, 'anio=' + (f.anio || 'todos')];
     if (f.region) p.push('region=' + f.region);
     if (f.grupo) p.push('grupo=' + encodeURIComponent(f.grupo));
-    if (f.tramite) p.push('tramite=' + encodeURIComponent(f.tramite));
+    if (f.tramites) p.push('tramite=' + encodeURIComponent(f.tramites.join('|')));
     location.replace('#' + p.join('&'));
   }
   function leerHash() {
@@ -573,7 +708,7 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
     poner('f-anio', h.anio === 'todos' ? '' : h.anio || ANIO_ACTUAL);
     if (h.region) poner('f-region', h.region);
     if (h.grupo) { poner('f-grupo', h.grupo); opcionesTramite(); }
-    if (h.tramite) poner('f-tramite', h.tramite);
+    if (h.tramite) ponerTramites(h.tramite.split('|'));
   }
 
   // ---- tooltip (DOM, no innerHTML: los rótulos vienen de la base) ----
@@ -619,12 +754,17 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
     var tarjetas = [
       ['entrada', 'Ingresados', num(k.ing), '', '<div class="kpi-pie">Iniciados ' + rango + '</div>'],
       ['listo', 'Finalizados', num(k.fin), 'verde', '<div class="kpi-pie">Terminados ' + rango + '</div>'],
-      [k.saldo >= 0 ? 'sube' : 'baja', 'Saldo del periodo', signo(k.saldo), '',
-        '<div class="kpi-pie">Ingresados menos finalizados</div>'],
+      // Saldo positivo = el stock crece = malo: rojo. Negativo: verde. El pie
+      // dice lo mismo en palabras, para que el color nunca vaya solo.
+      [k.saldo >= 0 ? 'sube' : 'baja', 'Saldo del periodo', signo(k.saldo),
+        k.saldo > 0 ? 'rojo' : k.saldo < 0 ? 'verde' : '',
+        '<div class="kpi-pie">' + (k.saldo > 0 ? 'Ingresaron más de los que terminaron: el stock crece'
+          : k.saldo < 0 ? 'Terminaron más de los que ingresaron: el stock baja'
+          : 'Ingresados menos finalizados') + '</div>'],
       ['reloj', 'Stock de casos', num(k.moc), 'ambar', pieMoc]
     ];
     $('kpis').innerHTML = tarjetas.map(function (t) {
-      return '<div class="tarjeta kpi"><div class="kpi-rot">' + ico(t[0], 'ico--22') + t[1] + '</div>' +
+      return '<div class="tarjeta kpi"><div class="kpi-rot' + (t[3] ? ' kpi-rot--' + t[3] : '') + '">' + ico(t[0], 'ico--22') + t[1] + '</div>' +
         '<div class="kpi-num' + (t[3] ? ' kpi-num--' + t[3] : '') + '">' + t[2] + '</div>' + t[4] + '</div>';
     }).join('');
   }
@@ -734,14 +874,30 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
     ['g-cruz', 'g-punto'].forEach(function (id) { var e = $(id); if (e) e.setAttribute('visibility', 'hidden'); });
     sinTip();
   }
-  var foco = -1;
-  $('grafico').addEventListener('pointermove', function (ev) {
-    if (!G) return;
-    var b = this.getBoundingClientRect(), j = Math.floor((ev.clientX - b.left - G.PI) / G.paso);
-    if (j < 0 || j >= G.n) { desmarcar(); return; }
-    foco = j; marcar(j, ev);
+  // Al abrir la tabla de datos, llevarla a la vista: queda bajo el gráfico y,
+  // con el panel ajustado a la pantalla, fuera del área visible.
+  $('g-tabla').addEventListener('toggle', function () {
+    if (!this.open || informeActivo) return;
+    var suave = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.scrollIntoView({ block: 'nearest', behavior: suave ? 'smooth' : 'auto' });
   });
-  $('grafico').addEventListener('pointerleave', desmarcar);
+  var foco = -1;
+  // pointerdown además de pointermove: con el dedo no hay hover, y un toque
+  // tiene que mostrar el periodo igual que pasar el mouse.
+  ['pointermove', 'pointerdown'].forEach(function (tipo) {
+    $('grafico').addEventListener(tipo, function (ev) {
+      if (!G) return;
+      var b = this.getBoundingClientRect(), j = Math.floor((ev.clientX - b.left - G.PI) / G.paso);
+      if (j < 0 || j >= G.n) { desmarcar(); return; }
+      foco = j; marcar(j, ev);
+    });
+  });
+  // Al levantar el dedo se dispara pointerleave: con toque, el tooltip queda
+  // hasta el siguiente toque fuera del gráfico.
+  $('grafico').addEventListener('pointerleave', function (ev) { if (ev.pointerType !== 'touch') desmarcar(); });
+  document.addEventListener('pointerdown', function (ev) {
+    if (ev.pointerType === 'touch' && !$('grafico').contains(ev.target)) desmarcar();
+  });
   // Teclado: flechas recorren los periodos, igual que el puntero.
   $('grafico').addEventListener('keydown', function (ev) {
     if (!G || (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight')) return;
@@ -770,9 +926,11 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
   // ---- listas de barras ----
   function listaBarras(caja, items, clave, seleccion, alElegir) {
     var max = Math.max.apply(null, items.map(function (x) { return x[clave]; }).concat([1]));
-    caja.classList.toggle('con-sel', !!seleccion);
+    var sel = [].concat(seleccion || []);   // una región o varios trámites
+    caja.classList.toggle('con-sel', sel.length > 0);
+    caja.classList.toggle('con-uno', sel.length === 1);
     caja.innerHTML = items.map(function (x) {
-      var el = x.id === seleccion;
+      var el = sel.indexOf(x.id) >= 0;
       return '<button type="button" class="barra-fila" data-id="' + esc(x.id) + '" aria-pressed="' + el + '">' +
         '<span class="barra-nom" title="' + esc(x.nombre) + '">' + esc(x.nombre) + '</span>' +
         '<span class="pista"><span class="relleno" style="width:' + (x[clave] / max * 100).toFixed(2) + '%"></span></span>' +
@@ -790,8 +948,10 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
     var items = r.porTramite.filter(function (t) { return !f.grupo || t.grupo === f.grupo; })
       .map(function (t) { return { id: t.nombre, nombre: t.nombre, moc: t.moc }; })
       .sort(function (x, y) { return y.moc - x.moc; });
-    listaBarras($('tramites'), items, 'moc', f.tramite, function (id) {
-      $('f-tramite').value = $('f-tramite').value === id ? '' : id;
+    // Clic suma o quita el trámite de la selección, igual que su casilla.
+    listaBarras($('tramites'), items, 'moc', f.tramites, function (id) {
+      var i = tramSel.indexOf(id);
+      ponerTramites(i >= 0 ? tramSel.filter(function (n) { return n !== id; }) : tramSel.concat([id]));
       cambio();
     });
   }
@@ -923,7 +1083,7 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
     if (estado.pag === 'resumen' || informeActivo) { pintarKpis(); pintarGrafico(); pintarTabla(); pintarTramites(); }
     if (estado.pag === 'territorio' || informeActivo) { pintarMapa(); pintarRanking(); }
   }
-  function cambio() { guardarHash(); sinTip(); pintar(); }
+  function cambio() { guardarHash(); sinTip(); pintar(); contarFiltros(); }
 
   function irA(pag) {
     estado.pag = pag;
@@ -942,19 +1102,88 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
     estado.metrica = b.getAttribute('data-m'); cambio();
   });
 
-  ['f-anio', 'f-region', 'f-tramite'].forEach(function (id) { $(id).addEventListener('change', cambio); });
+  ['f-anio', 'f-region'].forEach(function (id) { $(id).addEventListener('change', cambio); });
   $('f-grupo').addEventListener('change', function () { opcionesTramite(); cambio(); });
   $('f-reset').addEventListener('click', function () {
     $('f-anio').value = ANIO_ACTUAL; $('f-region').value = ''; $('f-grupo').value = '';
-    opcionesTramite(); $('f-tramite').value = ''; cambio();
+    ponerTramites([]); cambio();
   });
 
-  $('menu-alt').addEventListener('click', function () {
-    var cerrado = $('app').classList.toggle('cerrado');
-    this.setAttribute('aria-expanded', !cerrado);
-    this.setAttribute('aria-label', cerrado ? 'Expandir panel' : 'Retraer panel');
-    this.innerHTML = '<svg class="ico ico--24" viewBox="0 0 24 24" aria-hidden="true">' + ICONOS[cerrado ? 'menu' : 'menu_open'] + '</svg>';
+  // Desplegable de trámites: cada casilla aplica al instante, como un
+  // segmentador. Se cierra con Escape o con un clic fuera.
+  var panelT = $('f-tramite-panel'), botonT = $('f-tramite-btn');
+  function abrirTramites(abrir) {
+    panelT.hidden = !abrir;
+    botonT.setAttribute('aria-expanded', abrir);
+  }
+  botonT.addEventListener('click', function () { abrirTramites(panelT.hidden); });
+  panelT.addEventListener('change', function (ev) {
+    var c = ev.target;
+    if (c.hasAttribute('data-todos')) {
+      ponerTramites([], !c.checked);          // marcar = todos; desmarcar = elegir desde cero
+    } else {
+      // Con todo marcado, desmarcar uno deja todos menos ese.
+      var base = tramNinguno ? [] : (tramSel.length ? tramSel : tramitesDelGrupo());
+      var lista = c.checked ? base.concat([c.value]) : base.filter(function (n) { return n !== c.value; });
+      ponerTramites(lista, !lista.length);
+    }
+    var mismo = panelT.querySelector(c.hasAttribute('data-todos') ? '[data-todos]' : 'input[value="' + CSS.escape(c.value) + '"]');
+    if (mismo) mismo.focus();   // redibujar el panel no debe botar el foco del teclado
+    cambio();
   });
+  document.addEventListener('click', function (ev) {
+    if (!panelT.hidden && !$('f-tramite').contains(ev.target)) abrirTramites(false);
+  });
+  $('f-tramite').addEventListener('keydown', function (ev) {
+    // stopPropagation: Escape cierra el desplegable, no también la hoja de filtros.
+    if (ev.key === 'Escape' && !panelT.hidden) { ev.stopPropagation(); abrirTramites(false); botonT.focus(); }
+  });
+
+  // Bajo 1440 px el menú arranca como riel de íconos: en una laptop la
+  // pantalla es para los datos. Si la persona lo abre o lo cierra, manda ella.
+  var anchoRiel = window.matchMedia('(max-width:1439px)'), menuElegido = false;
+  function ponerMenu(cerrado) {
+    var b = $('menu-alt');
+    $('app').classList.toggle('cerrado', cerrado);
+    b.setAttribute('aria-expanded', !cerrado);
+    b.setAttribute('aria-label', cerrado ? 'Expandir panel' : 'Retraer panel');
+    b.innerHTML = '<svg class="ico ico--24" viewBox="0 0 24 24" aria-hidden="true">' + ICONOS[cerrado ? 'menu' : 'menu_open'] + '</svg>';
+  }
+  $('menu-alt').addEventListener('click', function () {
+    menuElegido = true;
+    ponerMenu(!$('app').classList.contains('cerrado'));
+  });
+  ponerMenu(anchoRiel.matches);
+  anchoRiel.addEventListener('change', function (e) { if (!menuElegido) ponerMenu(e.matches); });
+
+  // Filtros en celular: el botón «Filtros · n» abre la hoja; se cierra con
+  // «Ver resultados», la X, Escape o un toque en el velo. Los filtros aplican
+  // al instante, igual que en pantalla grande.
+  function abrirFiltros(abrir) {
+    $('filtros').classList.toggle('abierto', abrir);
+    $('f-abrir').setAttribute('aria-expanded', abrir);
+    document.documentElement.style.overflow = abrir ? 'hidden' : '';
+    (abrir ? $('f-region') : $('f-abrir')).focus();
+  }
+  $('f-abrir').addEventListener('click', function () { abrirFiltros(true); });
+  $('f-cerrar').addEventListener('click', function () { abrirFiltros(false); });
+  $('f-listo').addEventListener('click', function () { abrirFiltros(false); });
+  $('filtros').addEventListener('click', function (ev) {
+    if (ev.target === this && this.classList.contains('abierto')) abrirFiltros(false);   // velo
+  });
+  $('filtros').addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape' && this.classList.contains('abierto')) abrirFiltros(false);
+  });
+  window.matchMedia('(max-width:760px)').addEventListener('change', function (e) {
+    if (!e.matches && $('filtros').classList.contains('abierto')) abrirFiltros(false);
+  });
+  // Cuántos filtros se apartan de la vista por defecto (año en curso, todo lo demás).
+  function contarFiltros() {
+    var f = filtro();
+    var n = (f.region ? 1 : 0) + (f.grupo ? 1 : 0) + (f.tramites ? 1 : 0) + (f.anio !== ANIO_ACTUAL ? 1 : 0);
+    $('f-cuenta').textContent = n || '';
+    $('f-abrir').setAttribute('aria-label', 'Filtros' + (n ? ', ' + n + ' aplicados' : ''));
+  }
   $('abrir-glosario').addEventListener('click', function () { $('glosario').showModal(); });
   $('cerrar-glosario').addEventListener('click', function () { $('glosario').close(); });
 
@@ -963,7 +1192,7 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
   $('exportar').addEventListener('click', function () {
     var f = filtro(), l = [];
     l.push('Filtros;Año=' + (f.anio || 'todos') + ';Región=' + ($('f-region').selectedOptions[0].text) +
-      ';Grupo=' + (f.grupo || 'todos') + ';Trámite=' + (f.tramite || 'todos'));
+      ';Grupo=' + (f.grupo || 'todos') + ';Trámite=' + (f.tramites ? f.tramites.join(', ') : 'todos'));
     if (estado.pag === 'resumen') {
       l.push('Periodo;Ingresados;Finalizados;Saldo;Stock de casos al cierre');
       r.serie.forEach(function (p) { l.push([p.etiqueta + (p.parcial ? ' (parcial)' : ''), p.ing, p.fin, p.ing - p.fin, p.moc].join(';')); });
@@ -1016,7 +1245,7 @@ legend{padding:0; margin-bottom:4px; font-size:12px; font-weight:700; letter-spa
     var texto = function (id) { return $(id).selectedOptions[0].text; };
     $('i-filtros').innerHTML = '<b>Filtros:</b> ';
     $('i-filtros').appendChild(document.createTextNode('Región: ' + texto('f-region') + ' · Año: ' + texto('f-anio') +
-      ' · Grupo: ' + texto('f-grupo') + ' · Trámite: ' + texto('f-tramite')));
+      ' · Grupo: ' + texto('f-grupo') + ' · Trámite: ' + (tramSel.length ? tramSel.join(', ') : 'Todos')));
     $('i-corte').innerHTML = '<b>Corte:</b> cifras al cierre de ' + mesAnio(r.corte) +
       (r.corte === D.mes_parcial ? ' (mes en curso: cifras parciales)' : '') +
       (D.origen === 'demo' ? ' · <b>Datos de ejemplo</b>, no son cifras del Ministerio' : '');
