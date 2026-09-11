@@ -34,14 +34,19 @@
     return -2;   // valor que no existe: no pasa nada, en vez de pasar todo
   }
 
-  // f = { anio: '2026'|null, grupo: string|null, tramite: string|null, region: '13'|null }
+  // f = { anio: '2026'|null, grupo: string|null, tramites: [string]|null, region: '13'|null }
+  // `tramites` admite varios: null (o vacío) = todos.
   function calcular(D, f) {
     var p = periodo(D, f.anio);
     if (!p) return null;
     var c = D.cubo, nM = D.meses.length;
     var nR = D.regiones.length, nT = D.tramites.length;
     var fr = indice(D.regiones, 'codigo', f.region);
-    var ft = indice(D.tramites, 'nombre', f.tramite);
+    var ft = null;   // {índice: true} de los trámites elegidos
+    if (f.tramites && f.tramites.length) {
+      ft = {};
+      f.tramites.forEach(function (n) { var j = indice(D.tramites, 'nombre', n); if (j >= 0) ft[j] = true; });
+    }
     var grupoDe = D.tramites.map(function (t) { return t.grupo; });
 
     var ing = new Float64Array(nM), fin = new Float64Array(nM), neto = new Float64Array(nM);
@@ -55,7 +60,7 @@
       var m = c[i], r = c[i + 1], t = c[i + 2];
       if (f.grupo && grupoDe[t] !== f.grupo) continue;
       if (m > p.hasta) continue;                    // después del corte no pesa en nada
-      var okR = fr === -1 || r === fr, okT = ft === -1 || t === ft;
+      var okR = fr === -1 || r === fr, okT = !ft || ft[t] === true;
       var dentro = m >= p.desde, n = c[i + 3] - c[i + 5];
       if (okR && okT) { ing[m] += c[i + 3]; fin[m] += c[i + 4]; neto[m] += n; }
       if (okT) {
