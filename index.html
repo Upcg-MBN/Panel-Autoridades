@@ -391,19 +391,26 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
 /* Desglose por región y trámite: solo existe en el informe. */
 #desglose{display:none}
 .informe #desglose{display:block}
+/* Una hoja por región. La primera no salta solo si el desglose abre el
+   informe; si antes va alguna página del panel, también empieza en hoja nueva
+   (si no, la primera región queda pegada al gráfico general). */
 .informe .reg-bloque{break-before:page}
 .informe #desglose .reg-bloque:first-child{break-before:auto}
-.informe .reg-bloque h2{margin:0; font-size:15pt; font-weight:500; color:var(--primario-darken-2)}
-.informe .reg-sub{margin:1mm 0 3mm; font-size:9pt; color:var(--gris-70)}
-.informe .tram-bloque{break-inside:avoid; margin-bottom:3mm; padding:2mm 3mm;
+.informe .pagina:not(.fuera) ~ #desglose .reg-bloque:first-child{break-before:page}
+.informe .reg-bloque h2{margin:0; font-size:14pt; font-weight:500; color:var(--primario-darken-2)}
+.informe .reg-sub{margin:0.5mm 0 2mm; font-size:8.5pt; color:var(--gris-70)}
+/* Las medidas de aquí abajo están calculadas para que la región entre en una
+   hoja: A4 menos márgenes son 267 mm, el encabezado de región ocupa ~11 mm y
+   quedan ~51 mm por familia. Subir el alto del gráfico parte la región en dos. */
+.informe .tram-bloque{break-inside:avoid; margin-bottom:2mm; padding:1.5mm 3mm;
   border:1px solid var(--gris-10); border-radius:var(--radius-m)}
 .informe .tram-bloque h3{display:flex; align-items:baseline; justify-content:space-between; gap:4mm;
-  margin:0 0 1mm; font-size:11pt; font-weight:500}
-.informe .tram-bloque h3 span{font-size:8.5pt; font-weight:400; color:var(--gris-70)}
+  margin:0 0 0.5mm; font-size:10.5pt; font-weight:500}
+.informe .tram-bloque h3 span{font-size:8pt; font-weight:400; color:var(--gris-70)}
 /* Qué trámites junta la familia: solo cuando son varios. */
-.informe .tram-sub{margin:0 0 1mm; font-size:8pt; color:var(--gris-60)}
-.informe .lienzo-min{position:relative; height:38mm}
-.informe .tram-vacio{margin:0; font-size:9pt; color:var(--gris-60)}
+.informe .tram-sub{margin:0 0 0.5mm; font-size:7.5pt; color:var(--gris-60)}
+.informe .lienzo-min{position:relative; height:34mm}
+.informe .tram-vacio{margin:0; font-size:8.5pt; color:var(--gris-60)}
 .informe .lienzo-min > svg{position:absolute; inset:0}
 #informe-glosario dl{margin:0}
 #informe-glosario dt{margin-top:3mm; font-size:10pt; font-weight:700}
