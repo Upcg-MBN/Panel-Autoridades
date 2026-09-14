@@ -397,10 +397,16 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
 .informe .reg-sub{margin:1mm 0 3mm; font-size:9pt; color:var(--gris-70)}
 .informe .tram-bloque{break-inside:avoid; margin-bottom:3mm; padding:2mm 3mm;
   border:1px solid var(--gris-10); border-radius:var(--radius-m)}
-.informe .tram-bloque h3{display:flex; align-items:baseline; justify-content:space-between; gap:4mm;
+.informe .tram-bloque h4{display:flex; align-items:baseline; justify-content:space-between; gap:4mm;
   margin:0 0 1mm; font-size:11pt; font-weight:500}
-.informe .tram-bloque h3 span{font-size:8.5pt; font-weight:400; color:var(--gris-70)}
+.informe .tram-bloque h4 span{font-size:8.5pt; font-weight:400; color:var(--gris-70)}
+/* Familia de trámites: separa los gráficos de la región en cinco secciones.
+   break-after: el rótulo nunca queda solo al pie de una página. */
+.informe .fam-rot{margin:4mm 0 2mm; padding-bottom:1mm; font-size:11.5pt; font-weight:500;
+  color:var(--primario-darken-1); border-bottom:1px solid var(--gris-20); break-after:avoid}
+.informe .reg-bloque .fam-rot:first-of-type{margin-top:0}
 .informe .lienzo-min{position:relative; height:38mm}
+.informe .tram-vacio{margin:0; font-size:9pt; color:var(--gris-60)}
 .informe .lienzo-min > svg{position:absolute; inset:0}
 #informe-glosario dl{margin:0}
 #informe-glosario dt{margin-top:3mm; font-size:10pt; font-weight:700}
@@ -518,7 +524,7 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
         </div>
       </section>
 
-      <section id="desglose" data-sec="desglose" aria-label="Desglose por región y trámite" hidden></section>
+      <section id="desglose" data-sec="desglose" aria-label="Desglose por región, familia y trámite" hidden></section>
 
       <section class="tarjeta" id="informe-glosario" data-sec="glosario" hidden>
         <div class="t-cab"><h2>Glosario de indicadores</h2></div>
@@ -564,7 +570,7 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
         <label class="opcion"><input type="checkbox" name="sec" value="ranking" checked>Ranking regional</label>
       </fieldset>
       <fieldset><legend>Desglose</legend>
-        <label class="opcion"><input type="checkbox" name="sec" value="desglose">Un gráfico por región y trámite</label>
+        <label class="opcion"><input type="checkbox" name="sec" value="desglose">Un gráfico por trámite, por región y familia</label>
         <p class="dlg-nota" id="pdf-desglose"></p>
       </fieldset>
       <fieldset><legend>Anexo</legend>
@@ -830,11 +836,18 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     var yM = function (v) { return y1 + H1 - v / maxM * H1; };
     var o = [];
 
+    // De arriba hacia abajo, saltando el rótulo repetido: con un máximo de 1 o
+    // 2, la marca de la mitad redondea al mismo número y el eje decía «1 1 0».
+    // El techo y el cero siempre se dibujan; la mitad, solo si aporta.
     function ejes(y0, alto, max) {
-      [0, 0.5, 1].forEach(function (f) {
+      var vistos = {};
+      [1, 0.5, 0].forEach(function (f) {
+        var rot = num(max * f);
+        if (vistos[rot]) return;
+        vistos[rot] = true;
         var yy = Math.round(y0 + alto - f * alto) + 0.5;
         o.push('<line x1="' + PI + '" x2="' + (W - PD) + '" y1="' + yy + '" y2="' + yy + '" stroke="var(--chart-grilla)"/>');
-        o.push('<text x="' + (PI - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="' + TXT + '" fill="var(--gris-60)">' + num(max * f) + '</text>');
+        o.push('<text x="' + (PI - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="' + TXT + '" fill="var(--gris-60)">' + rot + '</text>');
       });
     }
     ejes(y1, H1, maxM);
@@ -1112,17 +1125,39 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     });
   }
 
-  // ---- desglose por región y trámite (solo para el PDF) ----
-  // Una sección por región y, dentro, un gráfico por trámite: cada uno es un
-  // cálculo aparte, con esa región y ese trámite fijados. Los demás filtros
+  // ---- desglose por región y familia de trámites (solo para el PDF) ----
+  // Una sección por región y, dentro, un gráfico por familia: cada uno es un
+  // cálculo aparte, con esa región y esos trámites fijados. Los demás filtros
   // (año y grupo) se respetan. Puede salir largo, así que el diálogo dice
   // cuántos gráficos son antes de generarlo.
+  //
+  // Los 17 trámites en cinco familias, como los mira la autoridad. Los nombres
+  // son los de la base (`datos.js`): «Concesion OLP» va sin tilde. Lo que no
+  // cae en las cuatro primeras se junta en la última, así que agregar un
+  // trámite a la base nunca lo deja fuera del informe.
+  var FAMILIAS = [
+    { nombre: 'Ventas', tramites: ['Venta', 'Ventas por Propuesta Pública'] },
+    { nombre: 'Arriendos', tramites: ['Arriendo'] },
+    { nombre: 'Concesiones OLP', tramites: ['Concesion OLP'] },
+    { nombre: 'Servidumbres y derechos de agua', tramites: ['Servidumbres', 'Aprovechamiento de Aguas'] },
+    { nombre: 'Otros trámites', tramites: null }   // el resto
+  ];
   function alcanceDesglose() {
     var f = filtro();
+    // De qué trámites se puede echar mano: los elegidos, o los del grupo.
+    var pool = f.tramites ? f.tramites.slice() : tramitesDelGrupo();
+    var usados = [];
+    var bloques = FAMILIAS.map(function (fam) {
+      var lista = fam.tramites
+        ? pool.filter(function (n) { return fam.tramites.indexOf(n) >= 0; })
+        : pool.filter(function (n) { return usados.indexOf(n) < 0; });
+      usados = usados.concat(lista);
+      return { nombre: fam.nombre, tramites: lista };
+    }).filter(function (b) { return b.tramites.length; });
     return {
       f: f,
       regiones: D.regiones.filter(function (x) { return f.region ? x.codigo === f.region : x.codigo !== '00'; }),
-      tramites: f.tramites ? f.tramites.slice() : tramitesDelGrupo()
+      bloques: bloques
     };
   }
   function pintarDesglose() {
@@ -1132,14 +1167,24 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
       var rr = AGG.calcular(D, base);
       if (!rr) return '';
       var rango = rr.periodo.grano === 'mensual' ? 'en ' + a.f.anio : 'entre 1999 y ' + ANIO_ACTUAL;
-      var bloques = a.tramites.map(function (t, j) {
-        var rt = AGG.calcular(D, { anio: a.f.anio, grupo: a.f.grupo, region: reg.codigo, tramites: [t] });
-        if (!rt) return '';
-        var id = 'dg-' + i + '-' + j;
-        pendientes.push([id, rt]);
-        return '<div class="tram-bloque"><h3>' + esc(t) + '<span>' + num(rt.kpi.moc) + ' en proceso · ' +
-          num(rt.kpi.ing) + ' ingresados · ' + num(rt.kpi.fin) + ' finalizados</span></h3>' +
-          '<div class="lienzo-min" id="' + id + '"></div></div>';
+      // Un gráfico por trámite, como antes; las familias solo agrupan y ponen
+      // el subtítulo. Cada gráfico sigue siendo su propio cálculo.
+      var bloques = a.bloques.map(function (b, j) {
+        var graficos = b.tramites.map(function (t, q) {
+          var rt = AGG.calcular(D, { anio: a.f.anio, grupo: a.f.grupo, region: reg.codigo, tramites: [t] });
+          if (!rt) return '';
+          var id = 'dg-' + i + '-' + j + '-' + q;
+          // Trámite sin movimiento ni stock en la región: el trámite se nombra
+          // igual (que no falte del informe), pero un gráfico plano en cero
+          // solo gasta media página.
+          var vacio = !rt.kpi.moc && !rt.kpi.ing && !rt.kpi.fin;
+          if (!vacio) pendientes.push([id, rt]);
+          return '<div class="tram-bloque"><h4>' + esc(t) + '<span>' + num(rt.kpi.moc) + ' en proceso · ' +
+            num(rt.kpi.ing) + ' ingresados · ' + num(rt.kpi.fin) + ' finalizados</span></h4>' +
+            (vacio ? '<p class="tram-vacio">Sin expedientes en el periodo.</p>'
+                   : '<div class="lienzo-min" id="' + id + '"></div>') + '</div>';
+        }).join('');
+        return graficos ? '<h3 class="fam-rot">' + esc(b.nombre) + '</h3>' + graficos : '';
       }).join('');
       return '<section class="reg-bloque"><h2>' + esc(reg.nombre) + '</h2>' +
         '<p class="reg-sub">' + num(rr.kpi.moc) + ' expedientes en proceso al cierre de ' + mesAnio(rr.corte) +
@@ -1380,11 +1425,13 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
   }
   $('pdf').addEventListener('click', function () {
     $('pdf-metrica').textContent = NOMBRE_M[estado.metrica].toLowerCase();
-    var a = alcanceDesglose(), nG = a.regiones.length * a.tramites.length;
+    var a = alcanceDesglose();
+    var nT = a.bloques.reduce(function (s, b) { return s + b.tramites.length; }, 0);
+    var nG = a.regiones.length * nT;
     $('pdf-desglose').textContent = a.regiones.length + (a.regiones.length === 1 ? ' región × ' : ' regiones × ') +
-      a.tramites.length + (a.tramites.length === 1 ? ' trámite = ' : ' trámites = ') + nG +
-      (nG === 1 ? ' gráfico' : ' gráficos') + ', desde ' + a.regiones.length +
-      (a.regiones.length === 1 ? ' página.' : ' páginas.') + ' Cada región empieza en una página nueva.';
+      nT + (nT === 1 ? ' trámite = ' : ' trámites = ') + nG + (nG === 1 ? ' gráfico' : ' gráficos') +
+      ', en ' + a.bloques.length + (a.bloques.length === 1 ? ' familia.' : ' familias.') +
+      ' Cada región empieza en una página nueva y ocupa varias.';
     $('generar-pdf').disabled = !elegidas().length;
     $('dlg-pdf').showModal();
   });
