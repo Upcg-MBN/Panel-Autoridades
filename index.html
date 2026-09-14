@@ -407,6 +407,10 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
 .informe .tram-bloque h3{display:flex; align-items:baseline; justify-content:space-between; gap:4mm;
   margin:0 0 0.5mm; font-size:10.5pt; font-weight:500}
 .informe .tram-bloque h3 span{font-size:8pt; font-weight:400; color:var(--gris-70)}
+.informe .ley-min{display:flex; align-items:center; gap:3mm}
+.informe .ley-min span{display:flex; align-items:center; gap:1.2mm; white-space:nowrap}
+.informe .ley-min .k-linea{width:4mm; height:0.7mm}
+.informe .ley-min .k-caja{width:2.2mm; height:2.2mm}
 /* Qué trámites junta la familia: solo cuando son varios. */
 .informe .tram-sub{margin:0 0 0.5mm; font-size:7.5pt; color:var(--gris-60)}
 .informe .lienzo-min{position:relative; height:34mm}
@@ -1015,7 +1019,11 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     var f = filtro();
     // La invitación a hacer clic no va en el informe impreso (clase .pantalla).
     $('t-sub').innerHTML = 'En proceso al cierre de ' + mesAnio(r.corte) + '.<span class="pantalla"> Clic para filtrar.</span>';
-    var items = r.porTramite.filter(function (t) { return !f.grupo || t.grupo === f.grupo; })
+    // Solo los trámites del filtro: el que se desmarca arriba sale de la lista
+    // (antes quedaba en gris). Sin filtro de trámite, todos los del grupo.
+    var items = r.porTramite.filter(function (t) {
+        return (!f.grupo || t.grupo === f.grupo) && (!f.tramites || f.tramites.indexOf(t.nombre) >= 0);
+      })
       .map(function (t) { return { id: t.nombre, nombre: t.nombre, moc: t.moc }; })
       .sort(function (x, y) { return y.moc - x.moc; });
     // Clic suma o quita el trámite de la selección, igual que su casilla.
@@ -1185,8 +1193,14 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
         // solo aparece cuando la familia junta varios.
         var sub = b.tramites.length > 1
           ? '<p class="tram-sub">' + esc(b.tramites.join(' · ')) + '</p>' : '';
-        return '<div class="tram-bloque"><h3>' + esc(b.nombre) + '<span>' + num(rt.kpi.moc) + ' en proceso · ' +
-          num(rt.kpi.ing) + ' ingresados · ' + num(rt.kpi.fin) + ' finalizados</span></h3>' + sub +
+        // La leyenda lleva las cifras del periodo: identifica las tres series
+        // sin sumar una línea, porque el alto del bloque está contado para que
+        // la región quepa en una hoja. Sin gráfico no hace falta leyenda.
+        var ley = vacio ? '' : '<span class="ley-min">' +
+          '<span><i class="k-linea" style="background:var(--primario-darken-1)"></i>' + num(rt.kpi.moc) + ' stock al cierre</span>' +
+          '<span><i class="k-caja" style="background:var(--chart-1)"></i>' + num(rt.kpi.ing) + ' ingresados</span>' +
+          '<span><i class="k-caja" style="background:var(--chart-2)"></i>' + num(rt.kpi.fin) + ' finalizados</span></span>';
+        return '<div class="tram-bloque"><h3>' + esc(b.nombre) + ley + '</h3>' + sub +
           (vacio ? '<p class="tram-vacio">Sin expedientes en el periodo.</p>'
                  : '<div class="lienzo-min" id="' + id + '"></div>') + '</div>';
       }).join('');
