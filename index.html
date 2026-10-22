@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Carga de trabajo de expedientes · Ministerio de Bienes Nacionales</title>
+<title>Carga de trabajo de expedientes en sistemas · Ministerio de Bienes Nacionales</title>
 <link rel="stylesheet" href="ds/styles.css">
 <link rel="stylesheet" href="ds/dataviz-tokens.css">
 <style>
@@ -20,7 +20,10 @@ html,body{height:100%}
 html{font-size:16px}
 /* La base mira también el alto: un monitor con la barra de tareas y el
    navegador deja ~950 px útiles, y el panel debe caber sin desplazarse. */
-@media (min-width:1024px){html{font-size:clamp(14px, min(9.077px + .3846vw, 7.667px + .8333vh), 16px)}}
+/* Octubre 2026: de 14–16 px a 12–14 px. Con dos filas de gráficos en Resumen, a
+   100 % de zoom no cabía en un monitor de 1920 × ~950 y había que bajar el
+   navegador a 70 %. 14 px en 1920 × 950; 12 px en una laptop de 1280 × 650. */
+@media (min-width:1024px){html{font-size:clamp(12px, min(6px + .42vw, 4.5px + 1vh), 14px)}}
 body{margin:0; background:var(--gris-5); color:var(--negro-text); font-family:var(--font-sans); font-size:1rem; line-height:1.4}
 :focus-visible{outline:none; box-shadow:var(--focus-ring)}
 ::selection{background:var(--primario-base); color:var(--blanco-base)}
@@ -45,7 +48,9 @@ button{font:inherit; color:inherit}
 /* Solo alto: fijar alto y ancho deforma el isologo (Manual de Normas Gráficas). */
 .cab img{height:4.25rem; display:block}
 .cab-txt{display:flex; flex-direction:column; gap:2px; margin-left:1rem; min-width:0}
-.cab h1{margin:0; font-family:var(--font-brand); font-weight:700; font-size:2rem; line-height:1.15; letter-spacing:.01em}
+/* 1.5rem y no 2rem: con el título largo («… en sistemas»), a 2rem se partía en dos
+   líneas en tablet (760–1023 px), el único tramo que no tiene su propio tamaño. */
+.cab h1{margin:0; font-family:var(--font-brand); font-weight:700; font-size:1.5rem; line-height:1.15; letter-spacing:.01em}
 /* Blanco al 90 % y no al 78 % del mockup: a 16 px el 78 % queda bajo 4,5:1 sobre el azul. */
 .cab p{margin:0; font-size:1rem; color:rgba(255,255,255,.9)}
 .cab-der{margin-left:auto; display:flex; align-items:center; gap:1.5rem}
@@ -116,6 +121,7 @@ button{font:inherit; color:inherit}
 .multi-op input{width:1.125rem; height:1.125rem; margin:0; flex:none; accent-color:var(--primario-darken-1)}
 .multi-todos{font-weight:500; margin-bottom:0.25rem; border-bottom:1px solid var(--gris-10); border-radius:var(--radius-s) var(--radius-s) 0 0}
 .multi-nota{margin:0.25rem 0.5rem 0.5rem; font-size:max(12px,0.8125rem); color:var(--gris-60)}
+.multi-atajo{width:100%; border:0; background:none; text-align:left; color:var(--primario-darken-1); margin-bottom:0.25rem}
 .enlace{display:flex; align-items:center; gap:0.5rem; padding:0.75rem 1rem; border:0; border-radius:var(--radius-s);
   background:none; font-size:1rem; color:var(--primario-darken-1); cursor:pointer}
 .enlace:hover{color:var(--primario-darken-2); background:var(--secundario-base)}
@@ -151,6 +157,9 @@ button{font:inherit; color:inherit}
 .kpi-pie{display:flex; align-items:center; gap:0.375rem; font-size:0.875rem; color:var(--gris-60)}
 .kpi-pie--sube{color:var(--error-darken-3)}
 .kpi-pie--baja{color:var(--exito-darken-3)}
+/* Comparación con el año anterior: bien o mal según la medida, no según si sube. */
+.kpi-pie--bien{color:var(--exito-darken-3)}
+.kpi-pie--mal{color:var(--error-darken-3)}
 
 /* ---------- Tarjetas de gráfico ---------- */
 .t-cab{display:flex; align-items:center; gap:0.5rem 1.25rem; flex-wrap:wrap}
@@ -180,6 +189,77 @@ button{font:inherit; color:inherit}
 .relleno{display:block; height:100%; background:var(--primario-darken-1); border-radius:0 var(--radius-s) var(--radius-s) 0}
 .barras.con-sel .barra-fila:not([aria-pressed="true"]) .relleno{background:var(--gris-30)}
 .barra-val{text-align:right; font-weight:500; font-variant-numeric:tabular-nums}
+/* Listas de solo lectura (página Gestión): no filtran, así que no son botones. */
+div.barra-fila{cursor:default}
+div.barra-fila:hover{background:none}
+/* Cuarta columna: la proporción que acompaña la cifra (% del stock o % fuera de plazo). */
+/* La barra no baja de 3rem: con poco ancho cede el nombre, que tiene title. */
+.barras.con-extra .barra-fila{grid-template-columns:minmax(0,11.875rem) minmax(3rem,1fr) 4.5rem 3.5rem}
+.barra-extra{text-align:right; color:var(--gris-60); font-variant-numeric:tabular-nums}
+
+/* ---------- Gestión del stock ---------- */
+.fila--pares > .tarjeta{flex:1 1 0}
+/* Territorio: grilla de tres columnas y dos filas. El mapa ocupa las dos filas
+   de la izquierda; ranking y variación, arriba con su alto natural (las 16
+   regiones); la dispersión, abajo y a lo ancho de ambas, con el alto que queda. */
+.fila--mapa{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr)}
+.fila--mapa > .tarjeta--mapa{grid-row:1 / span 2}
+.fila--mapa > .tarjeta--bajo{grid-column:2 / span 2}
+/* Listas compactas en la grilla del mapa: cada píxel que no usan es alto para
+   la dispersión de abajo. */
+.fila--mapa .barras{gap:0}
+.fila--mapa .barra-fila{padding:0.125rem 0.25rem}
+.fila--mapa .pista{height:0.75rem}
+/* Mapa de calor: una tabla de verdad, que el lector de pantalla recorre por
+   fila y columna, con el fondo de la rampa secuencial del mapa. La cifra va
+   escrita en cada celda: el color ordena, no informa solo. */
+.calor-caja{flex:1; min-height:0; overflow:auto}
+.calor{border-collapse:separate; border-spacing:3px; width:100%; table-layout:fixed; font-size:max(12px,0.8125rem)}
+.calor th{font-weight:400; color:var(--gris-60); padding:0.25rem; line-height:1.2}
+.calor thead th{vertical-align:bottom; text-align:center}
+.calor tbody th{text-align:right; width:7.5rem}
+.calor td{height:2.5rem; text-align:center; border-radius:var(--radius-s); font-variant-numeric:tabular-nums; font-weight:500}
+.calor td.oscuro{color:var(--blanco-base)}
+.calor td.cero{color:var(--gris-40); font-weight:400}
+.calor .eje{font-size:max(11px,0.75rem); font-weight:500; letter-spacing:.04em; color:var(--gris-60); padding-bottom:0}
+.calor .eje--filas{text-align:right; white-space:nowrap}
+/* Semáforo de plazo: 100 % apilado, una fila por trámite. */
+.apilada{display:flex}
+.apilada > span{height:100%}
+/* Barras divergentes (variación del stock): el cero al centro. */
+.diverge{position:relative; overflow:visible; background:none}
+.diverge::before{content:""; position:absolute; left:var(--cero,50%); top:-3px; bottom:-3px; border-left:1px solid var(--gris-40)}
+.diverge > span{position:absolute; top:0; height:100%}
+.diverge .sube{background:var(--chart-estado-critico); border-radius:0 var(--radius-s) var(--radius-s) 0}
+.diverge .baja{background:var(--chart-estado-bueno); border-radius:var(--radius-s) 0 0 var(--radius-s)}
+/* Con una región elegida, las demás filas retroceden, como en el ranking. */
+.barras.con-sel .barra-fila:not([aria-pressed="true"]) .apilada,
+.barras.con-sel .barra-fila:not([aria-pressed="true"]) .diverge > span{opacity:.3}
+.barra-fila--total{font-weight:500; border-bottom:1px solid var(--gris-10); border-radius:0; margin-bottom:0.25rem}
+/* Matriz desplegable, como las del panel GPP: trámite → etapa → subetapa → actividad. */
+.matriz-caja{flex:1; min-height:0; overflow:auto}
+.matriz{border-collapse:collapse; width:100%; font-size:0.875rem}
+.matriz thead th{position:sticky; top:0; z-index:1; background:var(--blanco-base); border-bottom:2px solid var(--gris-20);
+  padding:0.5rem; text-align:right; font-weight:500; color:var(--gris-60); font-size:max(12px,0.8125rem); line-height:1.2}
+.matriz thead th:first-child{text-align:left}
+.matriz td{padding:0.3125rem 0.5rem; border-bottom:1px solid var(--gris-10); text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+.matriz td:first-child{text-align:left; white-space:normal}
+.matriz tr.m-n0 td{font-weight:500}
+.m-nom{display:flex; align-items:center; gap:0.25rem}
+.m-alt{width:1.5rem; height:1.5rem; flex:none; border:0; border-radius:var(--radius-s); background:none; padding:0;
+  display:grid; place-items:center; cursor:pointer; color:var(--primario-darken-1)}
+.m-alt:hover{background:var(--secundario-base)}
+.m-alt .ico{transform:rotate(-90deg); transition:transform var(--duration-base) var(--ease-standard)}
+.m-alt[aria-expanded="true"] .ico{transform:none}
+.m-hoja{width:1.5rem; flex:none}
+.m-mini{display:inline-block; width:3.5rem; height:0.5rem; margin-right:0.5rem; vertical-align:middle; background:var(--gris-5); border-radius:var(--radius-s); overflow:hidden}
+.m-mini i{display:block; height:100%; background:var(--primario-darken-1)}
+.sem{display:inline-flex; align-items:center; gap:0.375rem}
+.sem i{width:0.625rem; height:0.625rem; border-radius:50%; flex:none}
+/* «izq» y no «txt»: .txt es la clase que el menú retraído esconde, y se llevaba las columnas de texto. */
+.tabla td.izq,.tabla thead th.izq{text-align:left}
+.detalle-caja{max-height:24rem}
 
 /* ---------- Mapa ---------- */
 .seg{display:inline-flex; margin-left:auto; border:1px solid var(--gris-20); border-radius:var(--radius-s); overflow:hidden}
@@ -243,11 +323,41 @@ dialog dd{margin:0.25rem 0 0; color:var(--gris-70); font-size:0.9375rem}
   .app{height:100vh; min-height:0}
   .cuerpo{min-height:0; overflow:hidden}
   .contenido{overflow:auto}
-  .lienzo{min-height:14rem}
-  .mapa-caja{min-height:18rem}
+  .lienzo{min-height:9rem}
+  .mapa-caja{min-height:16rem}
   /* Piso de la fila: en pantallas muy bajas el contenido se desplaza, en vez
-     de encoger la tarjeta bajo su gráfico y cortarlo. */
-  .fila{min-height:28rem}
+     de encoger la tarjeta bajo su gráfico y cortarlo. Bajo, para que dos filas
+     de gráficos se repartan la pantalla en vez de pedir scroll. */
+  .fila{min-height:16rem}
+  /* Territorio: la fila del mapa ocupa el alto visible (la pantalla menos
+     cabecera, filtros y márgenes, ~11rem) y el mapa, casi cuadrado, crece con
+     ella. La segunda fila queda bajo el pliegue, con alto propio. */
+  /* Alto fijo y no mínimo: con flex:none, un mínimo deja crecer la fila hasta
+     la lista más larga (los 51 roles) y la matriz medía 1.300 px. */
+  .fila--mapa{flex:none; height:max(40rem, calc(100vh - 11rem))}
+  /* Gestión: el mapa de calor entero (seis filas) y la matriz con aire para
+     leer varias filas sin desplazarse dentro de ella. */
+  #p-gestion > .fila--pares{flex:none; height:28rem}
+  #p-gestion > .fila:not(.fila--pares){flex:none; height:34rem}
+  .calor td{height:2.25rem}
+  /* Densidad de escritorio: menos aire en cabecera, márgenes y tarjetas. Lo que
+     se gana va a los gráficos, no se achica la letra más allá de la base. */
+  .cab{min-height:4.25rem; padding:0 2rem}
+  .cab img{height:2.875rem}
+  .cab h1{font-size:1.5rem}
+  .cab p{font-size:0.875rem}
+  .menu{padding:1rem 0}
+  .pag{padding:0.625rem 1.375rem}
+  .contenido{padding:1rem 1.5rem; gap:1rem}
+  .pagina,.fila,.kpis{gap:1rem}
+  .chip{height:2.5rem}
+  .tarjeta{padding:1rem 1.25rem}
+  .col{gap:0.625rem}
+  .t-sub{margin-top:-0.375rem}
+  .kpi{gap:0.375rem}
+  .kpi-num{font-size:2.25rem}
+  /* Las tarjetas sueltas en la página (detalle, composición) no reparten alto. */
+  .pagina > .tarjeta{flex:none}
   /* Con la tabla de datos abierta la fila deja de ajustarse a la pantalla:
      la tarjeta crece con la tabla (antes la tabla se salía de la tarjeta y el
      gráfico se aplastaba) y el contenido se desplaza. */
@@ -263,6 +373,10 @@ dialog dd{margin:0.25rem 0 0; color:var(--gris-70); font-size:0.9375rem}
   .lienzo{flex:none; height:28.75rem}
   .mapa-caja{flex:none; height:35rem}
   .barras{overflow:visible}
+  .matriz-caja,.calor-caja{flex:none}
+  /* Apiladas, las filas crecen con su contenido: el alto fijo de escritorio no aplica. */
+  .fila--mapa,#p-gestion > .fila--pares,#p-gestion > .fila:not(.fila--pares){height:auto}
+  .fila--mapa{display:flex}   /* sin grilla: una tarjeta bajo otra */
 }
 @media (max-width:760px){
   .cab{padding:0.875rem 1rem; gap:0.5rem 0.75rem; flex-wrap:wrap; min-height:0}
@@ -323,6 +437,7 @@ dialog dd{margin:0.25rem 0 0; color:var(--gris-70); font-size:0.9375rem}
   .kpi-pie{font-size:0.75rem; align-items:flex-start}
   .tarjeta{padding:1rem}
   .barra-fila{grid-template-columns:minmax(0,7.5rem) minmax(0,1fr) 3.75rem; gap:0.5rem}
+  .barras.con-extra .barra-fila{grid-template-columns:minmax(0,7.5rem) minmax(0,1fr) 3.75rem 3rem}
   .lienzo{height:25rem}
   .mapa-caja{height:27.5rem}
   .seg{margin-left:0}
@@ -381,8 +496,15 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
 .informe .mapa-caja{flex:none; height:150mm; min-height:0}
 .informe .escala{font-size:8.5pt}
 .informe .barras{flex:none; overflow:visible}
+.informe .matriz-caja,.informe .calor-caja{flex:none; overflow:visible}
+.informe .matriz{font-size:8.5pt}
+.informe .matriz thead th{position:static}
+.informe .matriz tr{break-inside:avoid}
+.informe .calor{font-size:8.5pt}
+.informe .calor td{height:8mm}
 /* En papel hay ancho de sobra: el nombre completo, sin puntos suspensivos. */
 .informe .barra-fila{grid-template-columns:62mm minmax(0,1fr) 20mm; padding:1mm 0; font-size:9pt; cursor:default}
+.informe .barras.con-extra .barra-fila{grid-template-columns:62mm minmax(0,1fr) 20mm 14mm}
 .informe .tabla-caja{max-height:none; overflow:visible; margin-top:0}
 .informe .tabla table{font-size:8.5pt}
 .informe .tabla thead th{position:static}
@@ -422,7 +544,7 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
 @media print{
   /* Los cuadros de margen no leen variables del documento: gris #666 literal. */
   @page{size:A4; margin:14mm 14mm 16mm;
-    @bottom-left{content:"Carga de trabajo de expedientes · Ministerio de Bienes Nacionales"; font:8pt Roboto,Arial,sans-serif; color:#666}
+    @bottom-left{content:"Carga de trabajo de expedientes en sistemas · Ministerio de Bienes Nacionales"; font:8pt Roboto,Arial,sans-serif; color:#666}
     @bottom-right{content:"Página " counter(page) " de " counter(pages); font:8pt Roboto,Arial,sans-serif; color:#666}}
   *{-webkit-print-color-adjust:exact; print-color-adjust:exact}
   .informe .contenido{width:auto; padding:0}
@@ -436,7 +558,7 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
   <header class="cab">
     <img src="ds/assets/logos/minbienes-blanco.png" alt="Ministerio de Bienes Nacionales">
     <div class="cab-txt">
-      <h1>CARGA DE TRABAJO DE EXPEDIENTES</h1>
+      <h1>CARGA DE TRABAJO DE EXPEDIENTES EN SISTEMAS</h1>
       <p>División de Planificación y Presupuesto · Unidad de Planificación y Control de Gestión</p>
     </div>
     <div class="cab-der">
@@ -455,6 +577,7 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
       </div>
       <button type="button" class="pag" data-pag="resumen" title="Resumen ejecutivo"><svg class="ico ico--24" viewBox="0 0 24 24" aria-hidden="true" data-i="dashboard"></svg><span class="txt">Resumen ejecutivo</span></button>
       <button type="button" class="pag" data-pag="territorio" title="Territorio"><svg class="ico ico--24" viewBox="0 0 24 24" aria-hidden="true" data-i="mapa"></svg><span class="txt">Territorio</span></button>
+      <button type="button" class="pag" data-pag="gestion" title="Gestión del stock"><svg class="ico ico--24" viewBox="0 0 24 24" aria-hidden="true" data-i="reloj"></svg><span class="txt">Gestión del stock</span></button>
       <div class="menu-pie">
         <button type="button" id="abrir-glosario" title="Glosario de indicadores"><svg class="ico ico--22" viewBox="0 0 24 24" aria-hidden="true" data-i="ayuda"></svg><span class="txt">Glosario de indicadores</span></button>
       </div>
@@ -463,7 +586,7 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     <main class="contenido">
       <header class="informe-cab" aria-hidden="true">
         <img src="ds/assets/logos/minbienes-color.png" alt="">
-        <div><h1>Carga de trabajo de expedientes</h1>
+        <div><h1>Carga de trabajo de expedientes en sistemas</h1>
           <p>División de Planificación y Presupuesto · Unidad de Planificación y Control de Gestión</p></div>
         <div class="informe-meta"><span id="i-filtros"></span><span id="i-corte"></span><span id="i-fecha"></span></div>
       </header>
@@ -490,11 +613,12 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
         <div class="fila">
           <div class="tarjeta col ancho">
             <div class="t-cab">
-              <h2>Ingresos, términos y stock de casos</h2>
+              <h2>Ingresos, términos y saldo</h2>
               <div class="leyenda" aria-hidden="true">
-                <span><i class="k-linea" style="background:var(--primario-darken-1)"></i>Stock de casos al cierre</span>
                 <span><i class="k-caja" style="background:var(--chart-1)"></i>Ingresados</span>
                 <span><i class="k-caja" style="background:var(--chart-2)"></i>Finalizados</span>
+                <span><i class="k-linea" style="background:var(--primario-darken-1)"></i>Saldo (ingresados − finalizados)</span>
+                <span id="ley-ant"><i class="k-linea" style="background:var(--negro-text); width:0.875rem"></i>Mismo mes del año anterior</span>
               </div>
             </div>
             <p class="t-sub" id="g-sub"></p>
@@ -507,11 +631,32 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
             <div class="barras" id="tramites"></div>
           </div>
         </div>
+        <div class="fila fila--pares">
+          <div class="tarjeta col" data-sec="cascada">
+            <div class="t-cab"><h2>Cómo cambió el stock</h2>
+              <div class="leyenda" aria-hidden="true">
+                <span><i class="k-caja" style="background:var(--primario-darken-1)"></i>Stock</span>
+                <span><i class="k-caja" style="background:var(--chart-estado-critico)"></i>Sube</span>
+                <span><i class="k-caja" style="background:var(--chart-estado-bueno)"></i>Baja</span>
+              </div>
+            </div>
+            <p class="t-sub" id="w-sub"></p>
+            <div class="lienzo" id="cascada"></div>
+          </div>
+          <div class="tarjeta col" data-sec="tasa">
+            <div class="t-cab"><h2>Tasa de resolución</h2></div>
+            <p class="t-sub" id="z-sub"></p>
+            <div class="lienzo" id="tasa"></div>
+          </div>
+        </div>
       </section>
 
       <section class="pagina" id="p-territorio" aria-label="Territorio" hidden>
-        <div class="fila">
-          <div class="tarjeta col ancho" data-sec="mapa">
+        <!-- Fila 1, del alto de la pantalla, en grilla: el mapa (casi cuadrado,
+             crece con el alto) ocupa las dos filas de la izquierda; a su derecha,
+             las dos listas por región y, bajo ellas, la dispersión. -->
+        <div class="fila fila--mapa">
+          <div class="tarjeta col tarjeta--mapa" data-sec="mapa">
             <div class="t-cab">
               <h2 id="m-tit">Stock de casos por región</h2>
               <div class="seg" role="group" aria-label="Indicador del mapa" id="metrica">
@@ -524,11 +669,70 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
             <div class="mapa-caja" id="mapa"></div>
             <div class="escala" id="escala"></div>
           </div>
-          <div class="tarjeta col angosto" data-sec="ranking">
+          <div class="tarjeta col" data-sec="ranking">
             <div class="t-cab"><h2>Ranking regional</h2></div>
             <p class="t-sub" id="r-sub"></p>
             <div class="barras" id="ranking"></div>
           </div>
+          <div class="tarjeta col" data-sec="variacion">
+            <div class="t-cab"><h2>Variación del stock</h2></div>
+            <p class="t-sub" id="v-sub"></p>
+            <div class="barras" id="variacion"></div>
+          </div>
+          <div class="tarjeta col tarjeta--bajo" data-sec="dispersion">
+            <div class="t-cab"><h2>Cuánto entra y cuánto se resuelve</h2></div>
+            <p class="t-sub" id="p-sub"></p>
+            <div class="lienzo" id="dispersion"></div>
+          </div>
+        </div>
+        <div class="tarjeta col" data-sec="composicion">
+          <div class="t-cab"><h2>De qué está hecho el stock de cada región</h2>
+            <div class="leyenda" id="c-ley" aria-hidden="true"></div>
+          </div>
+          <p class="t-sub" id="k-sub"></p>
+          <div class="barras" id="composicion"></div>
+        </div>
+      </section>
+
+      <section class="pagina" id="p-gestion" aria-label="Gestión del stock" hidden>
+        <div class="kpis" id="g-kpis" data-sec="g-kpis"></div>
+        <div class="fila fila--pares">
+          <div class="tarjeta col" data-sec="calor">
+            <div class="t-cab"><h2>Antigüedad y tiempo sin movimiento</h2></div>
+            <p class="t-sub" id="h-sub"></p>
+            <div class="calor-caja"><table class="calor" id="calor"></table></div>
+            <div class="escala" id="calor-escala"></div>
+          </div>
+          <div class="tarjeta col" data-sec="semaforo">
+            <div class="t-cab"><h2>Plazo de la actividad actual</h2>
+              <div class="leyenda" aria-hidden="true">
+                <span><i class="k-caja" style="background:var(--chart-estado-bueno)"></i>Dentro del plazo</span>
+                <span><i class="k-caja" style="background:var(--chart-estado-alerta)"></i>Hasta 2 veces</span>
+                <span><i class="k-caja" style="background:var(--chart-estado-critico)"></i>Más de 2 veces</span>
+                <span><i class="k-caja" style="background:var(--chart-estado-nulo)"></i>Sin plazo</span>
+              </div>
+            </div>
+            <p class="t-sub" id="s-sub"></p>
+            <div class="barras" id="semaforo"></div>
+          </div>
+        </div>
+        <div class="fila">
+          <div class="tarjeta col ancho" data-sec="matriz">
+            <div class="t-cab"><h2>Dónde está el stock</h2>
+              <button type="button" class="enlace pantalla" id="m-todo" style="margin-left:auto">Expandir todo</button></div>
+            <p class="t-sub" id="x-sub"></p>
+            <div class="matriz-caja"><table class="matriz" id="matriz"></table></div>
+          </div>
+          <div class="tarjeta col angosto" data-sec="rol">
+            <div class="t-cab"><h2>Quién lo tiene</h2></div>
+            <p class="t-sub" id="o-sub"></p>
+            <div class="barras" id="rol"></div>
+          </div>
+        </div>
+        <div class="tarjeta col" data-sec="detalle">
+          <div class="t-cab"><h2>Expedientes con más tiempo sin movimiento</h2></div>
+          <p class="t-sub" id="d-sub"></p>
+          <div class="tabla"><div class="tabla-caja detalle-caja"><table id="detalle"></table></div></div>
         </div>
       </section>
 
@@ -554,8 +758,34 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     <dd>Ingresados menos finalizados. Positivo significa que el stock de casos creció por efecto del periodo.</dd>
     <dt>Stock de casos</dt>
     <dd>Expedientes en proceso al último día del periodo: ya habían ingresado, en cualquier año, y todavía no terminaban. Es un saldo, no un flujo: no se suma entre meses. Al elegir un año, el stock incluye los expedientes de años anteriores que siguen abiertos. </dd>
+    <dt>Tasa de resolución</dt>
+    <dd>Finalizados por cada 100 ingresados en el mismo periodo. Bajo 100, entra más de lo que sale y el stock crece.</dd>
+    <dt>Cómo cambió el stock</dt>
+    <dd>Cascada desde el stock al inicio hasta el stock al cierre: cada barra es lo que subió (rojo) o bajó (verde) en un periodo. Sin año elegido muestra los últimos ocho años.</dd>
+    <dt>Cuánto entra y cuánto se resuelve</dt>
+    <dd>Una burbuja por región: a la derecha, más ingresos; arriba, más finalizados por cada 100 ingresados; el tamaño es su stock. Al pasar el puntero o elegir una región, un punto gris la muestra en los mismos meses del año anterior. Las líneas punteadas son el ingreso promedio por región y la tasa nacional.</dd>
+    <dt>Variación del stock por región</dt>
+    <dd>Stock al cierre menos el del mismo mes del año anterior.</dd>
+    <dt>Comparación con el año anterior</dt>
+    <dd>A la misma altura: los meses cerrados del año contra los mismos meses del año anterior (por ejemplo, ene–sep 2026 contra ene–sep 2025). El mes en curso no entra, porque está incompleto. El stock se compara contra el mismo mes del año anterior. En verde lo que mejora y en rojo lo que empeora: más finalizados es mejor; más saldo o más stock, peor; los ingresos no se colorean.</dd>
     <dt>Mes en curso</dt>
     <dd>Sus cifras están incompletas y se dibujan más claras: sin esa marca se leen como una caída que no ocurrió.</dd>
+    <dt>Foto del stock (página Gestión)</dt>
+    <dd>Los expedientes en proceso a la fecha de actualización, sin importar el año elegido: la antigüedad y el tiempo sin movimiento se miden hoy y no se pueden reconstruir hacia atrás. Región, grupo y trámite sí la recortan.</dd>
+    <dt>Antigüedad</dt>
+    <dd>Tiempo desde la fecha de inicio del expediente hasta hoy.</dd>
+    <dt>Tiempo sin movimiento</dt>
+    <dd>Tiempo desde la última fecha en que alguna actividad del expediente empezó o terminó. Más de 90 días sin movimiento es el criterio de detenido del Power BI.</dd>
+    <dt>Etapa y rol</dt>
+    <dd>Los de la actividad actual del expediente: la abierta más reciente. La etapa sale del catálogo de etapas; el rol es el cargo que tiene la actividad, no la persona. «Sin actividad abierta»: el expediente no tiene término, pero todas sus actividades están cerradas.</dd>
+    <dt>Fuera de plazo</dt>
+    <dd>La actividad actual lleva más días abierta que el plazo de su subetapa en el catálogo. Se calcula sobre los expedientes cuya actividad tiene plazo. El semáforo separa los que lo superan hasta en el doble de los que lo superan en más del doble.</dd>
+    <dt>Días / plazo</dt>
+    <dd>Promedio de días en la actividad actual dividido por el promedio de plazo, sobre los expedientes con plazo: la misma razón que «Ratio Duración» del panel GPP. Sobre 1, el grupo va atrasado en promedio.</dd>
+    <dt>Expedientes con más tiempo sin movimiento</dt>
+    <dd>Los 25 con más días sin movimiento de cada región y los 25 de cada trámite. Solo número de expediente, región, trámite, fechas y actividad: sin solicitante ni funcionario.</dd>
+    <dt>Duración de los expedientes terminados</dt>
+    <dd>No está en este panel: la mide el panel de Tiempos de tramitación, por trámite, etapa y actividad.</dd>
     <dt>Fuente</dt>
     <dd>Base <i>PostgreSQL GXP</i>, 17 tablas de trámite, un expediente por número.</dd>
   </dl>
@@ -569,13 +799,26 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
       <p class="dlg-nota">Elige qué incluir. El informe usa los filtros actuales. En la ventana de impresión, elige «Guardar como PDF».</p>
       <fieldset><legend>Resumen ejecutivo</legend>
         <label class="opcion"><input type="checkbox" name="sec" value="kpis" checked>Indicadores principales</label>
-        <label class="opcion"><input type="checkbox" name="sec" value="grafico" checked>Gráfico de ingresos, términos y stock de casos</label>
+        <label class="opcion"><input type="checkbox" name="sec" value="grafico" checked>Gráfico de ingresos, términos y saldo</label>
         <label class="opcion"><input type="checkbox" name="sec" value="tabla">Tabla de datos del gráfico</label>
         <label class="opcion"><input type="checkbox" name="sec" value="tramites" checked>Stock de casos por trámite</label>
+        <label class="opcion"><input type="checkbox" name="sec" value="cascada" checked>Cómo cambió el stock</label>
+        <label class="opcion"><input type="checkbox" name="sec" value="tasa" checked>Tasa de resolución</label>
       </fieldset>
       <fieldset><legend>Territorio</legend>
         <label class="opcion"><input type="checkbox" name="sec" value="mapa" checked>Mapa: <span id="pdf-metrica">stock de casos</span> por región</label>
         <label class="opcion"><input type="checkbox" name="sec" value="ranking" checked>Ranking regional</label>
+        <label class="opcion"><input type="checkbox" name="sec" value="dispersion" checked>Cuánto entra y cuánto se resuelve</label>
+        <label class="opcion"><input type="checkbox" name="sec" value="variacion" checked>Variación del stock por región</label>
+        <label class="opcion"><input type="checkbox" name="sec" value="composicion" checked>Composición del stock por región</label>
+      </fieldset>
+      <fieldset><legend>Gestión del stock</legend>
+        <label class="opcion"><input type="checkbox" name="sec" value="g-kpis" checked>Indicadores de gestión</label>
+        <label class="opcion"><input type="checkbox" name="sec" value="calor" checked>Antigüedad y tiempo sin movimiento</label>
+        <label class="opcion"><input type="checkbox" name="sec" value="semaforo" checked>Plazo de la actividad actual</label>
+        <label class="opcion"><input type="checkbox" name="sec" value="matriz" checked>Dónde está el stock (como se ve desplegada)</label>
+        <label class="opcion"><input type="checkbox" name="sec" value="rol" checked>Quién lo tiene</label>
+        <label class="opcion"><input type="checkbox" name="sec" value="detalle">Expedientes con más tiempo sin movimiento</label>
       </fieldset>
       <fieldset><legend>Desglose</legend>
         <label class="opcion"><input type="checkbox" name="sec" value="desglose">Un gráfico por región y familia de trámites</label>
@@ -659,8 +902,13 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
 
   // ---- estado de la vista ----
   var ANIO_ACTUAL = D.mes_parcial.slice(0, 4);
+  var PAGINAS = ['resumen', 'territorio', 'gestion'];
+  var SECS_RESUMEN = ['kpis', 'grafico', 'tramites', 'cascada', 'tasa'];   // más 'tabla', opcional en el PDF
+  var SECS_TERRITORIO = ['mapa', 'ranking', 'dispersion', 'variacion', 'composicion'];
+  var SECS_GESTION = ['g-kpis', 'calor', 'semaforo', 'matriz', 'rol', 'detalle'];
   var estado = { pag: 'resumen', metrica: 'moc' };
   var r = null;   // último cálculo
+  var cmp = null; // comparación con el año anterior (AGG.comparacion), o null
 
   $('sello').textContent = 'Actualizado ' + fechaHora(D.generado);
 
@@ -686,7 +934,7 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
   // casillas marcadas, de modo que desmarcar una deja todos menos esa. Como el
   // filtro de Excel, desmarcar «Todos» limpia las casillas para elegir desde
   // cero (`tramNinguno`); mientras no se marque ninguno, se siguen viendo todos.
-  var tramSel = [], tramNinguno = false;
+  var tramSel = [], tramNinguno = false, HV = 'Herencia Vacante';
   function tramitesDelGrupo() {
     var g = $('f-grupo').value;
     return D.tramites.filter(function (t) { return !g || t.grupo === g; }).map(function (t) { return t.nombre; });
@@ -701,6 +949,10 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     var marcado = function (n) { return !tramNinguno && (!tramSel.length || tramSel.indexOf(n) >= 0); };
     $('f-tramite-panel').innerHTML =
       '<label class="multi-op multi-todos"><input type="checkbox" data-todos>Todos</label>' +
+      // Atajo: Herencia Vacante es casi la mitad del stock y su ingreso masivo
+      // de 2026 tapa la tendencia del resto.
+      (validos.indexOf(HV) >= 0 && validos.length > 1
+        ? '<button type="button" class="multi-op multi-atajo" data-sin-hv>Todos menos ' + HV + '</button>' : '') +
       (tramNinguno ? '<p class="multi-nota">Marca los trámites que quieres ver.</p>' : '') +
       validos.map(function (n) {
         return '<label class="multi-op"><input type="checkbox" value="' + esc(n) + '"' +
@@ -737,7 +989,7 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     var poner = function (id, v) {
       var s = $(id); if (Array.prototype.some.call(s.options, function (o) { return o.value === v; })) s.value = v;
     };
-    if (h.p === 'territorio') estado.pag = 'territorio';
+    if (PAGINAS.indexOf(h.p) >= 0) estado.pag = h.p;
     if (h.m === 'ing' || h.m === 'fin') estado.metrica = h.m;
     poner('f-anio', h.anio === 'todos' ? '' : h.anio || ANIO_ACTUAL);
     if (h.region) poner('f-region', h.region);
@@ -772,42 +1024,59 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
   }
 
   // ---- KPI ----
+  // Variación contra el año anterior (AGG.comparacion). `bueno`: +1 si subir es
+  // bueno, −1 si es malo, 0 si no es ni lo uno ni lo otro (más ingresos es más
+  // demanda, no un logro ni una falla). El color acompaña a la flecha y al
+  // texto; nunca va solo.
+  function pieAnt(act, ant, bueno, cuando) {
+    var d = act - ant, cl = !d || !bueno ? '' : (d > 0) === (bueno > 0) ? ' kpi-pie--bien' : ' kpi-pie--mal';
+    var p = ant ? (d > 0 ? '+' : d < 0 ? '−' : '') + Math.abs(d / ant * 100).toLocaleString('es-CL', { maximumFractionDigits: 1 }) + ' %' : null;
+    return '<div class="kpi-pie' + cl + '">' + ico(d >= 0 ? 'sube' : 'baja', 'ico--18') + signo(d) + (p ? ' (' + p + ')' : '') + ' ' + cuando + '</div>';
+  }
+  // «ene–sep 2026 vs 2025», o «2025 vs 2024» con el año completo.
+  function tramoAnt() { return mesesCmp(cmp.anio) + ' vs ' + cmp.anterior; }
+  // «ene–sep 2026»: los meses cerrados que entran en la comparación.
+  function mesesCmp(anio) {
+    var u = cmp.cerrados;
+    return (u === 12 ? '' : 'ene' + (u > 1 ? '–' + MESES[u - 1].slice(0, 3) : '') + ' ') + anio;
+  }
   function pintarKpis() {
     var k = r.kpi, anual = r.periodo.grano === 'anual';
     var rango = anual ? 'entre 1999 y ' + ANIO_ACTUAL : 'en ' + $('f-anio').value;
     var enCurso = r.corte === D.mes_parcial ? ' (en curso)' : '';
-    var pieMoc;
-    if (k.mocAnterior === null) {
-      pieMoc = '<div class="kpi-pie">' + ico('reloj', 'ico--18') + 'Al cierre de ' + mesAnio(r.corte) + enCurso + '</div>';
-    } else {
-      var dv = k.moc - k.mocAnterior, ant = D.meses[r.periodo.desde - 1];
-      // Que la mochila suba es malo: el color dice la dirección y si conviene.
-      pieMoc = '<div class="kpi-pie kpi-pie--' + (dv > 0 ? 'sube' : dv < 0 ? 'baja' : '') + '">' +
-        ico(dv >= 0 ? 'sube' : 'baja', 'ico--18') + signo(dv) + ' respecto de ' + mesAnio(ant) + '</div>';
-    }
+    var t = cmp ? tramoAnt() : '';
     var tarjetas = [
-      ['entrada', 'Ingresados', num(k.ing), '', '<div class="kpi-pie">Iniciados ' + rango + '</div>'],
-      ['listo', 'Finalizados', num(k.fin), 'verde', '<div class="kpi-pie">Terminados ' + rango + '</div>'],
+      ['entrada', 'Ingresados', num(k.ing), '', '<div class="kpi-pie">Iniciados ' + rango + '</div>' +
+        (cmp ? pieAnt(cmp.act.ing, cmp.ant.ing, 0, t) : '')],
+      ['listo', 'Finalizados', num(k.fin), 'verde', '<div class="kpi-pie">Terminados ' + rango + '</div>' +
+        (cmp ? pieAnt(cmp.act.fin, cmp.ant.fin, 1, t) : '')],
       // Saldo positivo = el stock crece = malo: rojo. Negativo: verde. El pie
       // dice lo mismo en palabras, para que el color nunca vaya solo.
       [k.saldo >= 0 ? 'sube' : 'baja', 'Saldo del periodo', signo(k.saldo),
         k.saldo > 0 ? 'rojo' : k.saldo < 0 ? 'verde' : '',
         '<div class="kpi-pie">' + (k.saldo > 0 ? 'Ingresaron más de los que terminaron: el stock crece'
           : k.saldo < 0 ? 'Terminaron más de los que ingresaron: el stock baja'
-          : 'Ingresados menos finalizados') + '</div>'],
-      ['reloj', 'Stock de casos', num(k.moc), 'ambar', pieMoc]
+          : 'Ingresados menos finalizados') + '</div>' +
+        (cmp ? pieAnt(cmp.act.ing - cmp.act.fin, cmp.ant.ing - cmp.ant.fin, -1, t) : '')],
+      ['reloj', 'Stock de casos', num(k.moc), 'ambar', '<div class="kpi-pie">Al cierre de ' + mesAnio(r.corte) + enCurso + '</div>' +
+        (cmp ? pieAnt(cmp.act.moc, cmp.ant.moc, -1, 'vs ' + mesAnio(cmp.corteAnt)) : '')]
     ];
-    $('kpis').innerHTML = tarjetas.map(function (t) {
+    $('kpis').innerHTML = htmlKpis(tarjetas);
+  }
+  // [ícono, rótulo, cifra, color de estado, pie en HTML]
+  function htmlKpis(tarjetas) {
+    return tarjetas.map(function (t) {
       return '<div class="tarjeta kpi"><div class="kpi-rot' + (t[3] ? ' kpi-rot--' + t[3] : '') + '">' + ico(t[0], 'ico--22') + t[1] + '</div>' +
         '<div class="kpi-num' + (t[3] ? ' kpi-num--' + t[3] : '') + '">' + t[2] + '</div>' + t[4] + '</div>';
     }).join('');
   }
 
-  // ---- gráfico: mochila en línea, flujos en barras, eje de tiempo común ----
-  // Dos paneles apilados y no dos ejes Y en un mismo plot: la mochila es ~30
-  // veces el flujo mensual, así que en una escala común las barras serían una
-  // raya, y con dos escalas el cruce de las curvas inventa una correlación que
-  // no está en los datos (estándar de visualización §4).
+  // ---- gráfico: ingresos, términos y saldo, en una sola escala ----
+  // Un eje, como pide el estándar de visualización §4: barras de ingresos y
+  // términos, y el saldo (ingresos − términos) en línea sobre la misma escala.
+  // El stock no va aquí: es ~30 veces el flujo mensual y aplastaría las
+  // barras; lo cuentan la cascada y el indicador. Con año elegido, una raya
+  // sobre cada barra marca el mismo mes del año anterior.
   var ESCALERA = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
   function techo(max) {
     if (!(max > 0)) return 1;
@@ -821,80 +1090,77 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     return '<path class="' + clase + '" d="M' + x + ',' + (y + h) + 'V' + (y + q) + 'q0,' + (-q) + ' ' + q + ',' + (-q) +
       'h' + (w - 2 * q) + 'q' + q + ',0 ' + q + ',' + q + 'V' + (y + h) + 'Z"/>';
   }
+  // Rótulos cortos para los ejes: 136.145 → «136 mil».
+  function corto(v) {
+    return Math.abs(v) >= 10000 ? (v < 0 ? '−' : '') + num(Math.abs(v) / 1000) + ' mil' : (v < 0 ? '−' + num(-v) : num(v));
+  }
 
   var G = null;   // geometría del gráfico del panel, para el hover
 
   // Dibuja el gráfico dentro de `caja`. Sirve para el del panel (interactivo)
   // y para los del desglose por región y trámite, que van fijos en el PDF. Por
   // eso las piezas del hover llevan clase y se buscan dentro de su caja: en el
-  // informe hay muchos gráficos en la misma página.
-  function dibujarGrafico(caja, rr, W, H, interactivo) {
+  // informe hay muchos gráficos en la misma página. `ant`: los doce meses del
+  // año anterior (AGG.comparacion), para las rayas; solo con serie mensual.
+  function dibujarGrafico(caja, rr, W, H, interactivo, ant) {
     var s = rr.serie, n = s.length, mensual = rr.periodo.grano === 'mensual';
     if (!n || W < 50) { caja.innerHTML = '<p class="vacio">Sin datos para este filtro.</p>'; return null; }
     // Versión compacta para el desglose: menos márgenes y letra más chica; el
     // título del bloque ya dice de qué trámite es.
     var chico = H < 220;
-    var TXT = chico ? 9 : 12, PI = chico ? 46 : 64, PD = chico ? 52 : 76;
-    var ARR = chico ? 12 : 24, EJE = chico ? 18 : 28, GAP = chico ? 16 : 40;
-    var util = H - ARR - GAP - EJE, H1 = Math.round(util * 0.47), H2 = util - H1;
-    var y1 = ARR, y2 = ARR + H1 + GAP, paso = (W - PI - PD) / n;
+    var TXT = chico ? 9 : 12, PI = chico ? 40 : 56, PD = chico ? 8 : 16, ARR = chico ? 8 : 16, EJE = chico ? 18 : 28;
+    var alto = H - ARR - EJE, paso = (W - PI - PD) / n;
     var cx = function (j) { return PI + paso * (j + 0.5); };
-    var maxM = techo(Math.max.apply(null, s.map(function (p) { return p.moc; })));
-    var maxF = techo(Math.max.apply(null, s.map(function (p) { return Math.max(p.ing, p.fin); })));
-    var yM = function (v) { return y1 + H1 - v / maxM * H1; };
+    var saldo = s.map(function (p) { return p.ing - p.fin; });
+    var marcas = mensual && ant ? s.map(function (p) { var k = +p.etiqueta.slice(5, 7) - 1; return { ing: ant.ing[k], fin: ant.fin[k] }; }) : null;
+    var altos = s.map(function (p) { return Math.max(p.ing, p.fin); }).concat(saldo);
+    if (marcas) marcas.forEach(function (m) { altos.push(m.ing, m.fin); });
+    var hi = techo(Math.max.apply(null, altos)), bajo = Math.min.apply(null, saldo.concat([0]));
+    var lo = bajo < 0 ? -techo(-bajo) : 0;
+    var y = function (v) { return ARR + (hi - v) / (hi - lo) * alto; }, y0 = y(0);
     var o = [];
 
-    // De arriba hacia abajo, saltando el rótulo repetido: con un máximo de 1 o
-    // 2, la marca de la mitad redondea al mismo número y el eje decía «1 1 0».
-    // El techo y el cero siempre se dibujan; la mitad, solo si aporta.
-    function ejes(y0, alto, max) {
-      var vistos = {};
-      [1, 0.5, 0].forEach(function (f) {
-        var rot = num(max * f);
-        if (vistos[rot]) return;
-        vistos[rot] = true;
-        var yy = Math.round(y0 + alto - f * alto) + 0.5;
-        o.push('<line x1="' + PI + '" x2="' + (W - PD) + '" y1="' + yy + '" y2="' + yy + '" stroke="var(--chart-grilla)"/>');
-        o.push('<text x="' + (PI - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="' + TXT + '" fill="var(--gris-60)">' + rot + '</text>');
-      });
-    }
-    ejes(y1, H1, maxM);
-    ejes(y2, H2, maxF);
-    var parcial = s.some(function (p) { return p.parcial; });
-    // Rótulos de panel con versiones de largo decreciente: se usa la más larga
-    // que cabe (se mide después de dibujar). En celular, la larga se salía.
-    var u = mensual ? 'mes' : 'año';
-    var rotulos = chico ? [] : [
-      ['g-cap1', ['Stock de casos: expedientes en proceso al cierre de cada ' + u,
-                  'Stock de casos al cierre de cada ' + u, 'Stock al cierre de cada ' + u]],
-      ['g-cap2', ['Ingresados y finalizados en el ' + u + (parcial ? ' · el último está en curso y va más claro' : ''),
-                  'Ingresados y finalizados en el ' + u + (parcial ? ' · el último, en curso' : ''),
-                  'Ingresados y finalizados por ' + u]]
-    ];
-    rotulos.forEach(function (rt, q) {
-      o.push('<text class="' + rt[0] + '" x="' + PI + '" y="' + (q ? y2 - 12 : y1 - 10) + '" font-size="13" fill="var(--gris-60)"></text>');
+    // Grilla en el techo, la mitad, el cero y (si el saldo baja de cero) el
+    // piso. El cero va más marcado: es la línea que el saldo cruza.
+    var vistos = {};
+    [hi, hi / 2, 0].concat(lo < 0 ? [lo] : []).forEach(function (v) {
+      var rot = corto(v);
+      if (vistos[rot] && v) return;
+      vistos[rot] = true;
+      var yy = Math.round(y(v)) + 0.5;
+      o.push('<line x1="' + PI + '" x2="' + (W - PD) + '" y1="' + yy + '" y2="' + yy + '" stroke="' + (v ? 'var(--chart-grilla)' : 'var(--gris-40)') + '"/>');
+      // Un piso muy cerca del cero se queda con su línea, sin rótulo: se montaba sobre el «0».
+      if (v < 0 && y(v) - y0 < TXT + 2) return;
+      o.push('<text x="' + (PI - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="' + TXT + '" fill="var(--gris-60)">' + rot + '</text>');
     });
 
-    // Panel 1: la mochila, línea de 2 px con lavado al 8 %.
-    var pts = s.map(function (p, j) { return cx(j).toFixed(1) + ',' + yM(p.moc).toFixed(1); });
-    o.push('<path d="M' + cx(0).toFixed(1) + ',' + (y1 + H1) + 'L' + pts.join('L') + 'L' + cx(n - 1).toFixed(1) + ',' + (y1 + H1) +
-      'Z" fill="var(--primario-darken-1)" opacity=".08"/>');
-    o.push('<polyline points="' + pts.join(' ') + '" fill="none" stroke="var(--primario-darken-1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
-    var fin = s[n - 1];
-    o.push('<circle cx="' + cx(n - 1).toFixed(1) + '" cy="' + yM(fin.moc).toFixed(1) + '" r="4" fill="var(--primario-darken-1)" stroke="var(--blanco-base)" stroke-width="2"/>');
-    o.push('<text x="' + (cx(n - 1) + 10).toFixed(1) + '" y="' + (yM(fin.moc) + 4).toFixed(1) + '" font-size="' + (chico ? 10 : 13) + '" font-weight="700" fill="var(--negro-text)">' + num(fin.moc) + '</text>');
-
-    // Panel 2: barras agrupadas, 24 px como máximo y 2 px de aire entre el par.
+    // Barras agrupadas, 24 px como máximo y 2 px de aire entre el par.
     var bw = Math.max(2, Math.min(24, (paso - 8) / 2));
     s.forEach(function (p, j) {
       var x0 = cx(j) - bw - 1, cl = p.parcial ? ' parcial' : '';
       [[p.ing, 'b1'], [p.fin, 'b2']].forEach(function (b, q) {
-        var alto = b[0] / maxF * H2;
-        o.push(barra(+(x0 + q * (bw + 2)).toFixed(1), +(y2 + H2 - alto).toFixed(1), +bw.toFixed(1), +alto.toFixed(1), b[1] + cl));
+        var h = y0 - y(b[0]);
+        o.push(barra(+(x0 + q * (bw + 2)).toFixed(1), +(y0 - h).toFixed(1), +bw.toFixed(1), +h.toFixed(1), b[1] + cl));
       });
+      if (marcas) {
+        [marcas[j].ing, marcas[j].fin].forEach(function (v, q) {
+          var xm = x0 + q * (bw + 2), ym = Math.round(y(v)) + 0.5;
+          o.push('<line class="b0" x1="' + (xm - 2).toFixed(1) + '" x2="' + (xm + bw + 2).toFixed(1) + '" y1="' + ym + '" y2="' + ym + '"/>');
+        });
+      }
     });
 
-    // Eje X común: como mucho un rótulo cada ~46 px, siempre el último.
+    // El saldo, encima, con halo blanco para que se lea sobre las barras.
+    var pts = saldo.map(function (v, j) { return cx(j).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
+    o.push('<polyline points="' + pts + '" fill="none" stroke="var(--blanco-base)" stroke-width="' + (chico ? 4 : 6) + '" stroke-linejoin="round"/>');
+    o.push('<polyline points="' + pts + '" fill="none" stroke="var(--primario-darken-1)" stroke-width="' + (chico ? 1.5 : 2.5) + '" stroke-linejoin="round" stroke-linecap="round"/>');
+    if (!chico && n <= 40) {
+      saldo.forEach(function (v, j) {
+        o.push('<circle cx="' + cx(j).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="3" fill="var(--primario-darken-1)" stroke="var(--blanco-base)" stroke-width="1.5"/>');
+      });
+    }
+
+    // Eje X: como mucho un rótulo cada ~46 px, siempre el último.
     var cada = Math.max(1, Math.ceil(n / Math.floor((W - PI - PD) / (chico ? 34 : 46))));
     s.forEach(function (p, j) {
       if (j % cada && j !== n - 1) return;
@@ -903,44 +1169,46 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     });
 
     if (interactivo) {
-      o.push('<line class="g-cruz" y1="' + (y1 - 4) + '" y2="' + (y2 + H2) + '" stroke="var(--gris-50)" stroke-width="1" visibility="hidden"/>');
-      o.push('<circle class="g-punto" r="4" fill="var(--primario-darken-1)" stroke="var(--blanco-base)" stroke-width="2" visibility="hidden"/>');
+      o.push('<line class="g-cruz" y1="' + ARR + '" y2="' + (ARR + alto) + '" stroke="var(--gris-50)" stroke-width="1" visibility="hidden"/>');
+      o.push('<circle class="g-punto" r="5" fill="var(--primario-darken-1)" stroke="var(--blanco-base)" stroke-width="2" visibility="hidden"/>');
       o.push('<rect x="' + PI + '" y="0" width="' + (W - PI - PD) + '" height="' + H + '" fill="transparent"/>');
     }
 
     caja.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' +
-      'Stock de casos al cierre e ingresados y finalizados por ' + (mensual ? 'mes' : 'año') + '. Los valores están en la tabla de datos.">' +
-      '<style>.b1{fill:var(--chart-1)}.b2{fill:var(--chart-2)}.parcial{opacity:.45}</style>' + o.join('') + '</svg>';
-    rotulos.forEach(function (rt) {
-      var t = caja.querySelector('.' + rt[0]), cabe = W - PI - 4;
-      for (var k = 0; k < rt[1].length; k++) {
-        t.textContent = rt[1][k];
-        if (t.getComputedTextLength() <= cabe) break;
-      }
-    });
-    return { PI: PI, paso: paso, n: n, cx: cx, yM: yM, mensual: mensual };
+      'Ingresados y finalizados en barras y saldo en línea, por ' + (mensual ? 'mes' : 'año') + ', en una sola escala. ' +
+      'Los valores están en la tabla de datos.">' +
+      '<style>.b1{fill:var(--chart-1)}.b2{fill:var(--chart-2)}.b0{stroke:var(--negro-text); stroke-width:2}.parcial{opacity:.45}</style>' +
+      o.join('') + '</svg>';
+    return { PI: PI, paso: paso, n: n, cx: cx, yS: function (j) { return y(saldo[j]); }, mensual: mensual, marcas: marcas };
   }
 
   function pintarGrafico() {
-    var caja = $('grafico'), mensual = r.periodo.grano === 'mensual';
+    var caja = $('grafico'), mensual = r.periodo.grano === 'mensual', conAnt = mensual && !!cmp;
     $('g-sub').textContent = (mensual ? $('f-anio').value + ', por mes' : '1999–' + ANIO_ACTUAL + ', por año') +
-      '. El stock de casos va arriba en su propio eje; ingresos y términos abajo.';
-    G = dibujarGrafico(caja, r, caja.clientWidth, caja.clientHeight, true);
+      ', en una sola escala. Saldo sobre cero: ese ' + (mensual ? 'mes' : 'año') + ' el stock creció.' +
+      (conAnt ? ' La raya sobre cada barra es el mismo mes de ' + cmp.anterior + '.' : '');
+    $('ley-ant').style.display = conAnt ? '' : 'none';   // .leyenda span{display:flex} le gana a [hidden]
+    G = dibujarGrafico(caja, r, caja.clientWidth, caja.clientHeight, true, conAnt ? cmp.mesesAnt : null);
   }
 
   function marcar(j, ev) {
     var p = r.serie[j], cruz = $('grafico').querySelector('.g-cruz'), punto = $('grafico').querySelector('.g-punto');
     if (!p || !cruz || !G) return;
     cruz.setAttribute('x1', G.cx(j)); cruz.setAttribute('x2', G.cx(j)); cruz.setAttribute('visibility', 'visible');
-    punto.setAttribute('cx', G.cx(j)); punto.setAttribute('cy', G.yM(p.moc)); punto.setAttribute('visibility', 'visible');
+    punto.setAttribute('cx', G.cx(j)); punto.setAttribute('cy', G.yS(j)); punto.setAttribute('visibility', 'visible');
     var tit = G.mensual ? mesDe(p.etiqueta).replace(/^./, function (c) { return c.toUpperCase(); }) + ' ' + p.etiqueta.slice(0, 4) : p.etiqueta;
     if (p.parcial) tit += G.mensual ? ' · en curso' : ' · en curso, hasta ' + mesDe(D.mes_parcial);
-    tip(ev, tit, [
-      { valor: num(p.moc), rotulo: 'Stock de casos al cierre', color: 'var(--primario-darken-1)' },
+    var filas = [
       { valor: num(p.ing), rotulo: 'Ingresados', color: 'var(--chart-1)', caja: true },
       { valor: num(p.fin), rotulo: 'Finalizados', color: 'var(--chart-2)', caja: true },
-      { valor: signo(p.ing - p.fin), rotulo: 'Saldo' }
-    ]);
+      { valor: signo(p.ing - p.fin), rotulo: 'Saldo', color: 'var(--primario-darken-1)' },
+      { valor: num(p.moc), rotulo: 'Stock de casos al cierre' }
+    ];
+    if (G.marcas) {
+      filas.push({ valor: num(G.marcas[j].ing), rotulo: 'Ingresados en ' + mesDe(p.etiqueta) + ' ' + cmp.anterior, color: 'var(--negro-text)' },
+                 { valor: num(G.marcas[j].fin), rotulo: 'Finalizados en ' + mesDe(p.etiqueta) + ' ' + cmp.anterior, color: 'var(--negro-text)' });
+    }
+    tip(ev, tit, filas);
   }
   function desmarcar() {
     Array.prototype.forEach.call($('grafico').querySelectorAll('.g-cruz, .g-punto'), function (e) {
@@ -983,16 +1251,20 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
   $('grafico').addEventListener('blur', desmarcar);
 
   function pintarTabla() {
-    var mensual = r.periodo.grano === 'mensual', hay = false;
+    var mensual = r.periodo.grano === 'mensual', hay = false, ant = mensual && cmp ? cmp.mesesAnt : null;
     var filas = r.serie.slice().reverse().map(function (p) {
       if (p.parcial) hay = true;
+      var k = +p.etiqueta.slice(5, 7) - 1;
       return '<tr><th scope="row">' + (mensual ? mesAnio(p.etiqueta) : p.etiqueta) + (p.parcial ? ' *' : '') + '</th><td>' +
-        num(p.ing) + '</td><td>' + num(p.fin) + '</td><td>' + signo(p.ing - p.fin) + '</td><td>' + num(p.moc) + '</td></tr>';
+        num(p.ing) + '</td><td>' + num(p.fin) + '</td><td>' + signo(p.ing - p.fin) + '</td><td>' + num(p.moc) + '</td>' +
+        (ant ? '<td>' + num(ant.ing[k]) + '</td><td>' + num(ant.fin[k]) + '</td>' : '') + '</tr>';
     }).join('');
     var abierta = $('g-tabla').open;
     $('g-tabla').innerHTML = '<summary>Ver tabla de datos</summary><div class="tabla-caja"><table><thead><tr>' +
       '<th scope="col">' + (mensual ? 'Mes' : 'Año') + '</th><th scope="col">Ingresados</th><th scope="col">Finalizados</th>' +
-      '<th scope="col">Saldo</th><th scope="col">Stock de casos al cierre</th></tr></thead><tbody>' + filas + '</tbody></table>' +
+      '<th scope="col">Saldo</th><th scope="col">Stock de casos al cierre</th>' +
+      (ant ? '<th scope="col">Ingresados ' + cmp.anterior + '</th><th scope="col">Finalizados ' + cmp.anterior + '</th>' : '') +
+      '</tr></thead><tbody>' + filas + '</tbody></table>' +
       (hay ? '<p class="t-sub" style="margin:8px 0 0">* En curso: cifra parcial.</p>' : '') + '</div>';
     $('g-tabla').open = abierta;
   }
@@ -1003,16 +1275,23 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     var sel = [].concat(seleccion || []);   // una región o varios trámites
     caja.classList.toggle('con-sel', sel.length > 0);
     caja.classList.toggle('con-uno', sel.length === 1);
+    // `extra`: una cuarta columna con la proporción. Sin `alElegir` la lista es
+    // de solo lectura: filas div, no botones que no hacen nada.
+    var extra = items.some(function (x) { return x.extra != null; });
+    caja.classList.toggle('con-extra', extra);
     caja.innerHTML = items.map(function (x) {
       var el = sel.indexOf(x.id) >= 0;
-      return '<button type="button" class="barra-fila" data-id="' + esc(x.id) + '" aria-pressed="' + el + '">' +
+      return (alElegir ? '<button type="button" class="barra-fila" data-id="' + esc(x.id) + '" aria-pressed="' + el + '">'
+                       : '<div class="barra-fila">') +
         '<span class="barra-nom" title="' + esc(x.nombre) + '">' + esc(x.nombre) + '</span>' +
         '<span class="pista"><span class="relleno" style="width:' + (x[clave] / max * 100).toFixed(2) + '%"></span></span>' +
-        '<span class="barra-val">' + num(x[clave]) + '</span></button>';
+        '<span class="barra-val">' + num(x[clave]) + '</span>' +
+        (extra ? '<span class="barra-extra">' + esc(x.extra == null ? '' : x.extra) + '</span>' : '') +
+        (alElegir ? '</button>' : '</div>');
     }).join('') || '<p class="vacio">Sin datos para este filtro.</p>';
-    caja.onclick = function (ev) {
+    caja.onclick = alElegir ? function (ev) {
       var b = ev.target.closest('.barra-fila'); if (b) alElegir(b.getAttribute('data-id'));
-    };
+    } : null;
   }
 
   function pintarTramites() {
@@ -1137,6 +1416,499 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     });
   }
 
+  // ---- piezas comunes de los gráficos SVG ----
+  // Grilla horizontal en 0, mitad y techo, con su rótulo a la izquierda. Se
+  // salta el rótulo repetido (con techo 1, la mitad redondea igual).
+  function grilla(o, x0, x1, y, max, fmt) {
+    var vistos = {};
+    [1, 0.5, 0].forEach(function (f) {
+      var rot = fmt(max * f);
+      if (vistos[rot] && f) return;
+      vistos[rot] = true;
+      var yy = Math.round(y(max * f)) + 0.5;
+      o.push('<line x1="' + x0 + '" x2="' + x1 + '" y1="' + yy + '" y2="' + yy + '" stroke="var(--chart-grilla)"/>');
+      o.push('<text x="' + (x0 - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="12" fill="var(--gris-60)">' + rot + '</text>');
+    });
+  }
+  function svg(caja, W, H, etiqueta, cuerpo) {
+    caja.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' +
+      esc(etiqueta) + '">' + cuerpo + '</svg>';
+  }
+  function rotuloPeriodo(p, mensual) { return mensual ? mesCorto(p.etiqueta) : p.etiqueta; }
+
+  // ---- Resumen: cascada del stock ----
+  // Stock al inicio, lo que subió o bajó en cada periodo y el stock al cierre.
+  // Subir es malo: rojo; bajar, verde, con el signo escrito para que el color
+  // no vaya solo. La variación sale de la diferencia de stock entre cortes, no
+  // de ingresos − términos: así cuadra con el stock aunque haya expedientes que
+  // terminan antes de empezar. Sin año, los últimos ocho años: con 28 la
+  // cascada es una escalera ilegible.
+  var CASCADA_ANIOS = 8;
+  function pintarCascada() {
+    var caja = $('cascada'), W = caja.clientWidth, H = caja.clientHeight;
+    var mensual = r.periodo.grano === 'mensual', s = mensual ? r.serie : r.serie.slice(-CASCADA_ANIOS);
+    if (!s.length || W < 50) { caja.innerHTML = '<p class="vacio">Sin datos para este filtro.</p>'; return; }
+    var antes = r.serie.length - s.length - 1;
+    var ini = mensual ? r.kpi.mocAnterior : (antes >= 0 ? r.serie[antes].moc : 0);
+    var rotIni = mensual ? mesAnio(D.meses[r.periodo.desde - 1]) : (antes >= 0 ? r.serie[antes].etiqueta : 'Inicio');
+    var pasos = s.map(function (p, j) { return { p: p, d: p.moc - (j ? s[j - 1].moc : ini) }; });
+    var tope = techo(Math.max.apply(null, [ini].concat(s.map(function (p) { return p.moc; }))));
+    var PI = 60, PD = 12, ARR = 24, EJE = 28, alto = H - ARR - EJE, n = s.length + 2, paso = (W - PI - PD) / n;
+    var y = function (v) { return ARR + alto - v / tope * alto; }, bw = Math.min(40, paso * 0.62);
+    var x = function (j) { return PI + paso * (j + 0.5) - bw / 2; };
+    $('w-sub').textContent = 'Stock al cierre de ' + rotIni + ', lo que subió o bajó cada ' + (mensual ? 'mes' : 'año') +
+      ' y el stock al cierre de ' + mesAnio(r.corte) + (r.corte === D.mes_parcial ? ' (en curso)' : '') + '.';
+    var o = [];
+    grilla(o, PI, W - PD, y, tope, corto);
+    var total = function (j, v, rot) {
+      o.push('<g><title>' + esc(rot) + ': ' + num(v) + '</title>' + barra(+x(j).toFixed(1), +y(v).toFixed(1), +bw.toFixed(1), +(ARR + alto - y(v)).toFixed(1), 'w0') + '</g>');
+      o.push('<text x="' + (x(j) + bw / 2).toFixed(1) + '" y="' + (y(v) - 6).toFixed(1) + '" text-anchor="middle" font-size="12" font-weight="700" fill="var(--negro-text)">' + corto(v) + '</text>');
+      o.push('<text x="' + (x(j) + bw / 2).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="12" fill="var(--gris-60)">' + esc(rot) + '</text>');
+    };
+    total(0, ini, mensual ? 'Dic' : rotIni);
+    var nivel = ini, cada = Math.max(1, Math.ceil(n / Math.floor((W - PI - PD) / 40)));
+    pasos.forEach(function (q, j) {
+      var a = nivel, b = nivel + q.d, top = y(Math.max(a, b)), h = Math.max(1, Math.abs(y(a) - y(b)));
+      o.push('<line x1="' + (x(j) + bw).toFixed(1) + '" x2="' + x(j + 1).toFixed(1) + '" y1="' + y(a).toFixed(1) + '" y2="' + y(a).toFixed(1) +
+        '" stroke="var(--gris-40)" stroke-dasharray="2 2"/>');
+      o.push('<g><title>' + (mensual ? mesAnio(q.p.etiqueta) : q.p.etiqueta) + ': ' + signo(q.d) + ' (stock ' + num(b) + ')</title>' +
+        '<rect class="' + (q.d > 0 ? 'w1' : 'w2') + (q.p.parcial ? ' parcial' : '') + '" x="' + x(j + 1).toFixed(1) + '" y="' + top.toFixed(1) +
+        '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2"/></g>');
+      if (bw >= 22) {
+        o.push('<text x="' + (x(j + 1) + bw / 2).toFixed(1) + '" y="' + (top - 5).toFixed(1) + '" text-anchor="middle" font-size="11" fill="var(--gris-70)">' +
+          signo(q.d) + '</text>');
+      }
+      if (!((j + 1) % cada) && j < pasos.length - 1) {   // el último mes ya lo rotula el total del cierre
+        o.push('<text x="' + (x(j + 1) + bw / 2).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="12" fill="var(--gris-60)">' +
+          rotuloPeriodo(q.p, mensual) + '</text>');
+      }
+      nivel = b;
+    });
+    o.push('<line x1="' + (x(n - 2) + bw).toFixed(1) + '" x2="' + x(n - 1).toFixed(1) + '" y1="' + y(nivel).toFixed(1) + '" y2="' + y(nivel).toFixed(1) +
+      '" stroke="var(--gris-40)" stroke-dasharray="2 2"/>');
+    total(n - 1, nivel, mensual ? mesCorto(r.corte + '') : r.corte.slice(0, 4));
+    svg(caja, W, H, 'Cascada del stock de casos desde ' + rotIni + ' hasta ' + mesAnio(r.corte) + '. Los valores están en la tabla de datos.',
+      '<style>.w0{fill:var(--primario-darken-1)}.w1{fill:var(--chart-estado-critico)}.w2{fill:var(--chart-estado-bueno)}.parcial{opacity:.45}</style>' + o.join(''));
+  }
+
+  // ---- Resumen: tasa de resolución ----
+  // Finalizados por cada 100 ingresados en cada periodo. La línea de 100 es la
+  // que importa: bajo ella, entra más de lo que sale y el stock crece.
+  function pintarTasa() {
+    var caja = $('tasa'), W = caja.clientWidth, H = caja.clientHeight, mensual = r.periodo.grano === 'mensual';
+    var s = r.serie.filter(function (p) { return p.ing > 0; });
+    if (!s.length || W < 50) { caja.innerHTML = '<p class="vacio">Sin ingresos en este periodo.</p>'; return; }
+    var t = s.map(function (p) { return p.fin / p.ing * 100; });
+    // Con año elegido, la tasa del mismo mes del año anterior, en gris.
+    var A = mensual && cmp ? cmp.mesesAnt : null;
+    var tAnt = A ? s.map(function (p) { var k = +p.etiqueta.slice(5, 7) - 1; return A.ing[k] ? A.fin[k] / A.ing[k] * 100 : null; }) : [];
+    var tope = techo(Math.max.apply(null, t.concat(tAnt.filter(function (v) { return v != null; }), [110])));
+    var PI = 48, PD = 40, ARR = 20, EJE = 28, alto = H - ARR - EJE, paso = (W - PI - PD) / s.length;
+    var cx = function (j) { return PI + paso * (j + 0.5); }, y = function (v) { return ARR + alto - v / tope * alto; };
+    var tot = r.kpi.ing ? r.kpi.fin / r.kpi.ing * 100 : 0;
+    var totAnt = cmp && cmp.ant.ing ? cmp.ant.fin / cmp.ant.ing * 100 : null, totAct = cmp && cmp.act.ing ? cmp.act.fin / cmp.act.ing * 100 : null;
+    $('z-sub').textContent = 'Finalizados por cada 100 ingresados, ' + (mensual ? 'por mes' : 'por año') + '. Bajo 100, el stock crece. ' +
+      'En el periodo: ' + num(tot) + '.' + (totAnt != null && totAct != null ?
+        ' ' + tramoAnt().replace(/^./, function (c) { return c.toUpperCase(); }) + ': ' + num(totAct) + ' contra ' + num(totAnt) + '.' : '') +
+      (A ? ' Gris: el mismo mes de ' + cmp.anterior + '.' : '');
+    var o = [];
+    grilla(o, PI, W - PD, y, tope, function (v) { return num(v); });
+    var y100 = Math.round(y(100)) + 0.5;
+    o.push('<line x1="' + PI + '" x2="' + (W - PD) + '" y1="' + y100 + '" y2="' + y100 + '" stroke="var(--negro-text)" stroke-dasharray="4 3"/>');
+    o.push('<text x="' + (W - PD + 6) + '" y="' + (y100 + 4) + '" font-size="12" fill="var(--negro-text)">100</text>');
+    if (A) {
+      var tramo = [];   // la línea se corta en los meses sin ingresos el año anterior
+      tAnt.concat([null]).forEach(function (v, j) {
+        if (v != null) { tramo.push(cx(j).toFixed(1) + ',' + y(v).toFixed(1)); return; }
+        if (tramo.length) o.push('<polyline points="' + tramo.join(' ') + '" fill="none" stroke="var(--gris-40)" stroke-width="2" stroke-linejoin="round"/>');
+        tramo = [];
+      });
+      tAnt.forEach(function (v, j) {
+        if (v != null) o.push('<circle cx="' + cx(j).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="2.5" fill="var(--gris-40)"><title>' +
+          mesDe(s[j].etiqueta) + ' ' + cmp.anterior + ': ' + num(v) + '</title></circle>');
+      });
+    }
+    var pts = t.map(function (v, j) { return cx(j).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
+    o.push('<polyline points="' + pts + '" fill="none" stroke="var(--chart-2)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>');
+    var cada = Math.max(1, Math.ceil(s.length / Math.floor((W - PI - PD) / 46)));
+    s.forEach(function (p, j) {
+      // Punto relleno sobre 100, hueco bajo 100: la forma repite lo que dice la posición.
+      o.push('<circle cx="' + cx(j).toFixed(1) + '" cy="' + y(t[j]).toFixed(1) + '" r="' + (s.length > 30 ? 2.5 : 4) + '" stroke="var(--chart-2)" stroke-width="2" fill="' +
+        (t[j] >= 100 ? 'var(--chart-2)' : 'var(--blanco-base)') + '"' + (p.parcial ? ' opacity=".45"' : '') + '><title>' +
+        (mensual ? mesAnio(p.etiqueta) : p.etiqueta) + (p.parcial ? ' (en curso)' : '') + ': ' + num(t[j]) + ' finalizados por cada 100 ingresados (' +
+        num(p.fin) + ' / ' + num(p.ing) + ')</title></circle>');
+      if (j % cada && j !== s.length - 1) return;
+      o.push('<text x="' + cx(j).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="12" fill="var(--gris-60)">' + rotuloPeriodo(p, mensual) + '</text>');
+    });
+    svg(caja, W, H, 'Tasa de resolución: finalizados por cada 100 ingresados. En el periodo, ' + num(tot) + '. Los valores están en la tabla de datos.', o.join(''));
+  }
+
+  // ---- Territorio: dispersión de regiones ----
+  // Eje X: ingresos del periodo (cuánta demanda llega). Eje Y: finalizados por
+  // cada 100 ingresados (cuánto se resuelve). Burbuja: stock. Arriba a la
+  // derecha, mucha demanda y bien resuelta; abajo a
+  // la derecha, mucha demanda y el stock creciendo. La línea vertical es el
+  // ingreso promedio por región; la horizontal, la tasa nacional.
+  var burbujas = {};   // lo dibujado en la dispersión, por código: lo lee el tooltip
+  function pintarDispersion() {
+    var caja = $('dispersion'), W = caja.clientWidth, H = caja.clientHeight;
+    // Con comparación, los meses cerrados del año y, en gris, la misma región
+    // en los mismos meses del año anterior: la raya dice hacia dónde se movió.
+    // Sin ella (enero en curso, o 1999), el periodo completo.
+    var mocDe = {};
+    r.porRegion.forEach(function (x) { mocDe[x.codigo] = x.moc; });
+    var regs = (cmp ? cmp.porRegion : r.porRegion).filter(function (x) { return x.codigo !== '00' && x.ing > 0; }).map(function (x) {
+      return { codigo: x.codigo, nombre: x.nombre, ing: x.ing, fin: x.fin, moc: mocDe[x.codigo],
+               ingAnt: cmp ? x.ingAnt : 0, finAnt: cmp ? x.finAnt : 0 };
+    });
+    burbujas = {};
+    regs.forEach(function (x) { burbujas[x.codigo] = x; });
+    var mensual = r.periodo.grano === 'mensual';
+    // Subtítulo en una línea: la tarjeta va bajo las listas y cada línea de
+    // texto es alto que pierde el gráfico. El detalle está en el glosario.
+    $('p-sub').innerHTML = 'Ingresos ' + (cmp ? mesesCmp(cmp.anio) : mensual ? $('f-anio').value : '1999–' + ANIO_ACTUAL) +
+      ' (→) y finalizados por cada 100 (↑); tamaño: stock.' +
+      (cmp ? ' Gris: ' + mesesCmp(cmp.anterior) + ', al pasar el puntero.' : '') +
+      ' Punteadas: promedio regional y tasa nacional.<span class="pantalla"> Clic para filtrar.</span>';
+    if (!regs.length || W < 50) { caja.innerHTML = '<p class="vacio">Sin ingresos en este periodo.</p>'; return; }
+    var tasa = function (x) { return x.fin / x.ing * 100; };
+    var conAnt = regs.filter(function (x) { return x.ingAnt > 0; });
+    var tasaAnt = function (x) { return x.finAnt / x.ingAnt * 100; };
+    // La escala la ponen las burbujas de este año (y el rastro de la región
+    // elegida): con todos los rastros, uno lejano aplastaba a las demás.
+    var elegida = conAnt.filter(function (x) { return x.codigo === $('f-region').value; });
+    var maxX = techo(Math.max.apply(null, regs.map(function (x) { return x.ing; }).concat(elegida.map(function (x) { return x.ingAnt; }))));
+    var maxY = techo(Math.max.apply(null, regs.map(tasa).concat(elegida.map(tasaAnt), [110])));
+    var maxM = Math.max.apply(null, regs.map(function (x) { return x.moc; }).concat([1]));
+    var PI = 56, PD = 24, ARR = 16, EJE = 40, alto = H - ARR - EJE, ancho = W - PI - PD;
+    var px = function (v) { return PI + v / maxX * ancho; }, py = function (v) { return ARR + alto - v / maxY * alto; };
+    var rad = function (m) { return 4 + Math.sqrt(m / maxM) * 22; };
+    var ti = total(regs, 'ing'), tf = total(regs, 'fin'), sel = $('f-region').value;
+    var o = [];
+    grilla(o, PI, W - PD, py, maxY, function (v) { return num(v); });
+    [0, 0.5, 1].forEach(function (f) {
+      o.push('<text x="' + px(maxX * f).toFixed(1) + '" y="' + (ARR + alto + 18) + '" text-anchor="middle" font-size="12" fill="var(--gris-60)">' + corto(maxX * f) + '</text>');
+    });
+    o.push('<text x="' + (W - PD) + '" y="' + (H - 4) + '" text-anchor="end" font-size="12" fill="var(--gris-60)">Ingresados →</text>');
+    o.push('<text x="' + PI + '" y="' + (ARR - 4) + '" font-size="12" fill="var(--gris-60)">↑ Finalizados por cada 100 ingresados</text>');
+    var mx = px(ti / regs.length), my = py(tf / ti * 100);
+    o.push('<line x1="' + mx.toFixed(1) + '" x2="' + mx.toFixed(1) + '" y1="' + ARR + '" y2="' + (ARR + alto) + '" stroke="var(--gris-50)" stroke-dasharray="4 3"/>');
+    o.push('<line x1="' + PI + '" x2="' + (W - PD) + '" y1="' + my.toFixed(1) + '" y2="' + my.toFixed(1) + '" stroke="var(--gris-50)" stroke-dasharray="4 3"/>');
+    // Rastro de cada región en el año anterior: oculto, salvo la elegida o la
+    // que tiene el puntero o el foco. Si cae fuera de la escala, queda en el
+    // borde y hueco (el tooltip trae la cifra exacta).
+    conAnt.forEach(function (x) {
+      var ax = px(x.ingAnt), ay = py(tasaAnt(x)), fx = Math.min(ax, W - PD), fy = Math.max(ay, ARR), fuera = fx !== ax || fy !== ay;
+      o.push('<g class="rastro" data-cod="' + x.codigo + '"' + (x.codigo === sel ? '' : ' visibility="hidden"') + ' pointer-events="none">' +
+        '<line x1="' + fx.toFixed(1) + '" y1="' + fy.toFixed(1) + '" x2="' + px(x.ing).toFixed(1) + '" y2="' + py(tasa(x)).toFixed(1) +
+        '" stroke="var(--gris-50)" stroke-width="1.5" stroke-dasharray="3 2"/>' +
+        '<circle cx="' + fx.toFixed(1) + '" cy="' + fy.toFixed(1) + '" r="4" stroke="var(--gris-60)" stroke-width="1.5" fill="' +
+        (fuera ? 'var(--blanco-base)' : 'var(--gris-50)') + '"/>' +
+        '<text x="' + fx.toFixed(1) + '" y="' + (fy - 8).toFixed(1) + '" text-anchor="middle" font-size="11" fill="var(--gris-60)">' + cmp.anterior + '</text></g>');
+    });
+    // Las grandes primero, para que las chicas queden encima y se puedan tocar.
+    regs.slice().sort(function (a, b) { return b.moc - a.moc; }).forEach(function (x) {
+      var cx = px(x.ing), cy = py(tasa(x)), ra = rad(x.moc), es = x.codigo === sel;
+      o.push('<circle class="burbuja' + (sel && !es ? ' atenua' : '') + (es ? ' sel' : '') + '" data-cod="' + x.codigo + '" tabindex="0" role="button" aria-label="' +
+        esc(x.nombre) + ': ' + num(x.ing) + ' ingresados, ' + num(tasa(x)) + ' finalizados por cada 100, stock ' + num(x.moc) + '" cx="' + cx.toFixed(1) +
+        '" cy="' + cy.toFixed(1) + '" r="' + ra.toFixed(1) + '"/>');
+    });
+    // Rótulos sin pisarse: de la burbuja más grande a la más chica, a la
+    // derecha; si choca con uno ya puesto, a la izquierda; si también choca, se
+    // omite (el tooltip la nombra igual). La elegida va primero y siempre.
+    // ponytail: el ancho del texto se estima (6,2 px por letra a 11 px), sin medir.
+    var puestos = [];
+    regs.slice().sort(function (a, b) { return (b.codigo === sel) - (a.codigo === sel) || b.moc - a.moc; }).forEach(function (x) {
+      var w = x.nombre.length * 6.2, cy = py(tasa(x)), ra = rad(x.moc), cx = px(x.ing);
+      var choca = function (x0) {
+        return x0 < 0 || x0 + w > W || puestos.some(function (q) { return x0 < q[0] + q[2] && x0 + w > q[0] && Math.abs(cy - q[1]) < 12; });
+      };
+      var x0 = cx + ra + 3;
+      if (choca(x0)) x0 = cx - ra - 3 - w;
+      if (choca(x0)) return;
+      puestos.push([x0, cy, w]);
+      o.push('<text x="' + x0.toFixed(1) + '" y="' + (cy + 4).toFixed(1) + '" font-size="11" fill="var(--gris-70)"' +
+        (sel && x.codigo !== sel ? ' opacity=".35"' : '') + ' pointer-events="none">' + esc(x.nombre) + '</text>');
+    });
+    svg(caja, W, H, 'Regiones según ingresos y finalizados por cada 100 ingresados; el tamaño es el stock.',
+      '<style>.burbuja{fill:var(--primario-darken-1); fill-opacity:.55; stroke:var(--blanco-base); stroke-width:1.5; cursor:pointer; outline:none}' +
+      '.burbuja:hover,.burbuja:focus-visible,.burbuja.sel{stroke:var(--negro-text); stroke-width:2.5; fill-opacity:.8}.atenua{fill-opacity:.15}</style>' + o.join(''));
+  }
+  // Muestra el rastro de la región bajo el puntero o el foco, además del de la elegida.
+  function rastro(cod) {
+    Array.prototype.forEach.call($('dispersion').querySelectorAll('.rastro'), function (g) {
+      var c = g.getAttribute('data-cod');
+      g.setAttribute('visibility', c === cod || c === $('f-region').value ? 'visible' : 'hidden');
+    });
+  }
+  function tipBurbuja(el, ev) {
+    var x = burbujas[el.getAttribute('data-cod')]; if (!x) return;
+    rastro(x.codigo);
+    var filas = [
+      { valor: num(x.ing), rotulo: 'Ingresados' + (cmp ? ' ' + mesesCmp(cmp.anio) : ''), color: 'var(--chart-1)', caja: true },
+      { valor: num(x.fin), rotulo: 'Finalizados', color: 'var(--chart-2)', caja: true },
+      { valor: num(x.fin / x.ing * 100), rotulo: 'Finalizados por cada 100 ingresados' }
+    ];
+    if (x.ingAnt) {
+      filas.push({ valor: num(x.ingAnt), rotulo: 'Ingresados ' + mesesCmp(cmp.anterior), color: 'var(--gris-50)' },
+                 { valor: num(x.finAnt / x.ingAnt * 100), rotulo: 'Finalizados por cada 100, ' + cmp.anterior, color: 'var(--gris-50)' });
+    }
+    filas.push({ valor: num(x.moc), rotulo: 'Stock de casos', color: 'var(--primario-darken-1)' });
+    tip(ev, x.nombre, filas);
+  }
+  function alternarRegion(cod) { $('f-region').value = $('f-region').value === cod ? '' : cod; cambio(); }
+  $('dispersion').addEventListener('pointermove', function (ev) {
+    if (ev.target.classList.contains('burbuja')) tipBurbuja(ev.target, ev); else { sinTip(); rastro(null); }
+  });
+  $('dispersion').addEventListener('pointerleave', function () { sinTip(); rastro(null); });
+  $('dispersion').addEventListener('focusin', function (ev) { if (ev.target.classList.contains('burbuja')) tipBurbuja(ev.target, evDe(ev.target)); });
+  $('dispersion').addEventListener('focusout', function () { sinTip(); rastro(null); });
+  $('dispersion').addEventListener('click', function (ev) {
+    if (ev.target.classList.contains('burbuja')) alternarRegion(ev.target.getAttribute('data-cod'));
+  });
+  $('dispersion').addEventListener('keydown', function (ev) {
+    if ((ev.key === 'Enter' || ev.key === ' ') && ev.target.classList.contains('burbuja')) { ev.preventDefault(); alternarRegion(ev.target.getAttribute('data-cod')); }
+  });
+
+  // Filas de región clicables, para las dos listas de abajo: elegir una
+  // filtra, igual que el mapa y el ranking.
+  function filasRegion(caja, items, cuerpo) {
+    var sel = $('f-region').value;
+    caja.classList.toggle('con-sel', !!sel);
+    caja.classList.toggle('con-uno', !!sel);
+    caja.innerHTML = items.map(function (x) {
+      return '<button type="button" class="barra-fila" data-id="' + x.codigo + '" aria-pressed="' + (x.codigo === sel) + '" title="' + esc(x.tit) + '">' +
+        '<span class="barra-nom">' + esc(x.nombre) + '</span>' + cuerpo(x) + '</button>';
+    }).join('') || '<p class="vacio">Sin datos para este filtro.</p>';
+    caja.onclick = function (ev) { var b = ev.target.closest('.barra-fila'); if (b) alternarRegion(b.getAttribute('data-id')); };
+  }
+
+  // ---- Territorio: variación del stock por región ----
+  // Barras divergentes desde el cero: a la derecha y en rojo lo que creció, a la
+  // izquierda y en verde lo que bajó. Ordenadas de más a menos crecimiento.
+  function pintarVariacion() {
+    var items = r.porRegion.filter(function (x) { return x.codigo !== '00' || x.moc || x.mocBase; }).map(function (x) {
+      var d = x.moc - x.mocBase;
+      return { codigo: x.codigo, nombre: x.nombre, d: d, pct: x.mocBase ? d / x.mocBase * 100 : null,
+               tit: x.nombre + ': ' + num(x.mocBase) + ' → ' + num(x.moc) + ' (' + signo(d) + ')' };
+    }).sort(function (a, b) { return b.d - a.d; });
+    // El cero se ubica según los datos: si todas crecieron, parte en el borde
+    // izquierdo y la barra usa todo el largo en vez de la mitad.
+    var neg = Math.max.apply(null, items.map(function (x) { return -x.d; }).concat([0]));
+    var pos = Math.max.apply(null, items.map(function (x) { return x.d; }).concat([0]));
+    var rango = neg + pos || 1, cero = neg / rango * 100;
+    $('v-sub').innerHTML = 'Stock al cierre de ' + mesAnio(r.corte) + ' contra el de ' + mesAnio(r.corteBase) +
+      ', y en % de este.<span class="pantalla"> Clic para filtrar.</span>';
+    filasRegion($('variacion'), items, function (x) {
+      var w = Math.abs(x.d) / rango * 100;
+      return '<span class="pista diverge" style="--cero:' + cero.toFixed(2) + '%"><span class="' + (x.d > 0 ? 'sube' : 'baja') + '" style="width:' +
+        w.toFixed(2) + '%; left:' + (x.d > 0 ? cero : cero - w).toFixed(2) + '%"></span></span><span class="barra-val">' + signo(x.d) + '</span>' +
+        '<span class="barra-extra">' + (x.pct == null ? '—' : (x.pct > 0 ? '+' : '') + x.pct.toLocaleString('es-CL', { maximumFractionDigits: 0 }) + ' %') + '</span>';
+    });
+    $('variacion').classList.add('con-extra');
+  }
+
+  // ---- Territorio: composición del stock por región ----
+  // Las partes salen del filtro: los cinco trámites con más stock dentro de él
+  // y el resto junto en «Otros». Sin filtro: Herencia Vacante, Saneamiento,
+  // Arriendo, Venta, Títulos Gratuitos; con el grupo Bienes, o sin Herencia
+  // Vacante, entran solos los siguientes. Con seis o menos, van todos sueltos.
+  // Los colores siguen el orden de la paleta categórica validada.
+  var COLORES = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)', 'var(--chart-6)'];
+  function partesComposicion() {
+    var tot = D.tramites.map(function (t, j) { return r.porRegion.reduce(function (s, x) { return s + x.mocPorTramite[j]; }, 0); });
+    var orden = tot.map(function (v, j) { return j; }).filter(function (j) { return tot[j] > 0; })
+      .sort(function (a, b) { return tot[b] - tot[a]; });
+    var solos = orden.length <= 6 ? orden : orden.slice(0, 5), resto = orden.slice(solos.length);
+    var partes = solos.map(function (j, k) { return { nombre: D.tramites[j].nombre, color: COLORES[k], tramites: [j] }; });
+    if (resto.length) partes.push({ nombre: 'Otros ' + resto.length + ' trámites', color: 'var(--gris-40)', tramites: resto });
+    return partes;
+  }
+  function pintarComposicion() {
+    var partes = partesComposicion(), otros = partes.length && partes[partes.length - 1].tramites.length > 1 ? partes[partes.length - 1] : null;
+    $('c-ley').innerHTML = partes.map(function (p) { return '<span><i class="k-caja" style="background:' + p.color + '"></i>' + esc(p.nombre) + '</span>'; }).join('');
+    $('k-sub').innerHTML = 'Stock al cierre de ' + mesAnio(r.corte) + ' por región, de norte a sur, con los cinco trámites de más stock del filtro. Cada fila suma 100 %.' +
+      (otros ? ' ' + esc(otros.nombre) + ': ' + esc(otros.tramites.map(function (j) { return D.tramites[j].nombre; }).join(', ')) + '.' : '') +
+      '<span class="pantalla"> Clic para filtrar.</span>';
+    var items = r.porRegion.filter(function (x) { return x.moc > 0; }).map(function (x) {
+      var v = partes.map(function (p) { return p.tramites.reduce(function (s, j) { return s + x.mocPorTramite[j]; }, 0); });
+      return { codigo: x.codigo, nombre: x.nombre, moc: x.moc, v: v,
+               tit: x.nombre + ': ' + partes.map(function (p, k) { return p.nombre + ' ' + num(v[k]) + ' (' + pct(v[k], x.moc) + ')'; }).join(' · ') };
+    });
+    filasRegion($('composicion'), items, function (x) {
+      return '<span class="pista apilada">' + x.v.map(function (m, k) {
+        return m > 0 ? '<span style="width:' + (m / x.moc * 100).toFixed(2) + '%; background:' + partes[k].color + '"></span>' : '';
+      }).join('') + '</span><span class="barra-val">' + num(x.moc) + '</span>';
+    });
+  }
+
+  // ---- página Gestión: foto del stock ----
+  // La foto es de la fecha de extracción y no mira el año (glosario). La
+  // duración de los terminados no va aquí: es del panel de Tiempos.
+  var URL_TIEMPOS = 'https://upcg-mbn.github.io/Panel-Tiempos-Tramitacion/';
+  function pct(a, b) { return b ? (a / b * 100).toLocaleString('es-CL', { maximumFractionDigits: 1 }) + ' %' : '—'; }
+  function fechaCorta(iso) { return iso.slice(8, 10) + '-' + iso.slice(5, 7) + '-' + iso.slice(0, 4); }
+  function total(xs, k) { return xs.reduce(function (s, x) { return s + x[k]; }, 0); }
+  var SEM = [['dentro', 'Dentro del plazo', 'var(--chart-estado-bueno)'], ['hasta2', 'Hasta 2 veces el plazo', 'var(--chart-estado-alerta)'],
+             ['mas2', 'Más de 2 veces el plazo', 'var(--chart-estado-critico)'], ['sin', 'Sin plazo en el catálogo', 'var(--chart-estado-nulo)']];
+
+  var gf = null;          // último cálculo de la foto
+  var abiertos = {};      // filas desplegadas de la matriz, por ruta: sobreviven a los filtros
+
+  function pintarGestion() {
+    gf = AGG.foto(D, filtro());
+    if (!gf) {
+      $('g-kpis').innerHTML = '<p class="vacio">Estos datos no traen la foto del stock: falta correr extraer.py.</p>';
+      return;
+    }
+    var tot = 0, n90 = 0, n2a = 0, nQ = gf.quieto.length;
+    gf.eq.forEach(function (fila) {
+      // q ≥ 2: desde «3 a 6 meses» sin movimiento; el último tramo, más de 2 años.
+      fila.forEach(function (v, q) { tot += v; if (q >= 2) n90 += v; if (q === nQ - 1) n2a += v; });
+    });
+    var con = total(gf.act, 'con'), fuera = total(gf.act, 'fuera'), sinAct = tot - total(gf.act, 'conAct');
+    var hoy = fechaCorta(gf.fecha);
+    $('g-kpis').innerHTML = htmlKpis([
+      ['reloj', 'Stock de casos hoy', num(tot), 'ambar', '<div class="kpi-pie">En proceso al ' + hoy + '</div>'],
+      ['alerta', 'Sin movimiento hace más de 90 días', num(n90), 'rojo',
+        '<div class="kpi-pie">' + pct(n90, tot) + ' del stock · ' + num(n2a) + ' hace más de 2 años</div>'],
+      ['alerta', 'Fuera de plazo', pct(fuera, con), 'rojo',
+        '<div class="kpi-pie">' + num(fuera) + ' de ' + num(con) + ' con plazo en el catálogo</div>'],
+      ['info', 'Sin actividad abierta', num(sinAct), 'ambar',
+        '<div class="kpi-pie">Sin término, con todas sus actividades cerradas: ¿debieron cerrarse?</div>']
+    ]);
+    pintarCalor(tot);
+    pintarSemaforo();
+    pintarMatriz();
+    $('o-sub').textContent = 'Cargo que tiene la actividad actual, y % fuera de plazo.';
+    listaBarras($('rol'), gf.rol.filter(function (x) { return x.n > 0; })
+      .map(function (x) { return { id: x.nombre, nombre: x.nombre, n: x.n, extra: x.con ? pct(x.fuera, x.con) : '—' }; })
+      .sort(function (x, y) { return y.n - x.n; }), 'n');
+    pintarDetalle();
+  }
+
+  // Filas: antigüedad; columnas: tiempo sin movimiento. A la izquierda, lo que
+  // se sigue moviendo; en la esquina inferior derecha, lo viejo y detenido.
+  // Clases por cortes naturales, como el mapa.
+  function pintarCalor(tot) {
+    var vals = [].concat.apply([], gf.eq), c = cortes(vals);
+    $('h-sub').textContent = 'Expedientes en proceso al ' + fechaCorta(gf.fecha) +
+      ', por tiempo desde su inicio (filas) y desde su último movimiento (columnas).';
+    // Dos títulos de eje, cada uno donde corresponde: el de las columnas en una
+    // fila propia sobre ellas, el de las filas en la esquina, sobre sus rótulos.
+    var h = '<thead><tr><td></td><th scope="colgroup" colspan="' + gf.quieto.length + '" class="eje">Tiempo sin movimiento →</th></tr>' +
+      '<tr><th scope="col" class="eje eje--filas">Antigüedad ↓</th>' +
+      gf.quieto.map(function (q) { return '<th scope="col">' + esc(q) + '</th>'; }).join('') + '</tr></thead><tbody>';
+    gf.eq.forEach(function (fila, e) {
+      h += '<tr><th scope="row">' + esc(gf.edad[e]) + '</th>' + fila.map(function (v, q) {
+        var k = clase(v, c), tit = gf.edad[e] + ' de antigüedad, ' + gf.quieto[q].toLowerCase() + ' sin movimiento: ' +
+          num(v) + ' (' + pct(v, tot) + ' del stock)';
+        return '<td title="' + esc(tit) + '"' + (k < 0 ? ' class="cero">0' : (k >= 3 ? ' class="oscuro"' : '') +
+          ' style="background:' + RAMPA[k] + '">' + num(v)) + '</td>';
+      }).join('') + '</tr>';
+    });
+    $('calor').innerHTML = h + '</tbody>';
+    var ley = ['<b>Expedientes</b>'];
+    for (var k = 0; k <= c.length; k++) {
+      var t = k === 0 ? 'hasta ' + num(c[0] || 0) : k === c.length ? 'más de ' + num(c[k - 1]) : num(c[k - 1] + 1) + ' – ' + num(c[k]);
+      ley.push('<span><i style="background:' + RAMPA[k] + '"></i>' + t + '</span>');
+    }
+    $('calor-escala').innerHTML = c.length ? ley.join('') : '';
+  }
+
+  // 100 % apilado por trámite: qué parte de su stock está dentro del plazo, lo
+  // supera hasta el doble, más del doble, o no tiene plazo en el catálogo.
+  function pintarSemaforo() {
+    var filas = AGG.semaforo(D, gf.act), varias = filas.length > 1;
+    var todos = { nombre: 'Todos los trámites', n: total(filas, 'n') };
+    SEM.forEach(function (s) { todos[s[0]] = total(filas, s[0]); });
+    $('s-sub').textContent = 'Días de la actividad actual contra el plazo de su subetapa. Cada fila suma 100 %.';
+    $('semaforo').innerHTML = (varias ? [todos] : []).concat(filas).map(function (x, i) {
+      var tit = x.nombre + ': ' + SEM.map(function (s) {
+        return s[1].toLowerCase() + ' ' + num(x[s[0]]) + ' (' + pct(x[s[0]], x.n) + ')';
+      }).join(' · ');
+      return '<div class="barra-fila' + (varias && i === 0 ? ' barra-fila--total' : '') + '" title="' + esc(tit) + '">' +
+        '<span class="barra-nom">' + esc(x.nombre) + '</span><span class="pista apilada" role="img" aria-label="' + esc(tit) + '">' +
+        SEM.map(function (s) {
+          return x[s[0]] ? '<span style="width:' + (x[s[0]] / x.n * 100).toFixed(2) + '%; background:' + s[2] + '"></span>' : '';
+        }).join('') + '</span><span class="barra-val">' + num(x.n) + '</span></div>';
+    }).join('') || '<p class="vacio">Sin datos para este filtro.</p>';
+  }
+
+  // Matriz desplegable, como las del panel GPP. Con un solo trámite elegido
+  // arranca en la etapa; si no, en el trámite.
+  function unTramite() { var f = filtro(); return !!(f.tramites && f.tramites.length === 1); }
+  function semaforoRazon(r) {
+    if (r == null) return '—';
+    var s = r <= 1 ? SEM[0] : r <= 2 ? SEM[1] : SEM[2];
+    return '<span class="sem" title="' + s[1] + '"><i style="background:' + s[2] + '"></i>' +
+      r.toLocaleString('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '</span>';
+  }
+  function pintarMatriz() {
+    var uno = unTramite(), raiz = AGG.arbol(D, gf.act, !uno);
+    var max = Math.max.apply(null, raiz.map(function (x) { return x.n; }).concat([1]));
+    $('x-sub').innerHTML = 'Actividad actual de cada expediente en proceso, por ' + (uno ? '' : 'trámite, ') +
+      'etapa y subetapa del catálogo. Días / plazo: promedio de días abierta sobre promedio de plazo; sobre 1, va atrasado.' +
+      '<span class="pantalla"> La duración de los ya terminados está en el <a href="' + URL_TIEMPOS +
+      '" target="_blank" rel="noopener">panel de Tiempos de tramitación</a>.</span>';
+    var filas = [];
+    (function bajar(nodos, nivel, ruta) {
+      nodos.forEach(function (x) {
+        var id = ruta + '/' + x.nombre, abierto = !!abiertos[id] && x.hijos.length > 0;
+        filas.push('<tr class="m-n' + nivel + '"><td style="padding-left:' + (0.5 + nivel * 1.25) + 'rem"><span class="m-nom">' +
+          (x.hijos.length ? '<button type="button" class="m-alt" data-id="' + esc(id) + '" aria-expanded="' + abierto +
+            '" aria-label="' + (abierto ? 'Contraer ' : 'Desplegar ') + esc(x.nombre) + '">' + ico('flecha', 'ico--18') + '</button>'
+            : '<span class="m-hoja"></span>') +
+          '<span>' + esc(x.nombre) + '</span></span></td>' +
+          '<td>' + (nivel === 0 ? '<span class="m-mini"><i style="width:' + (x.n / max * 100).toFixed(1) + '%"></i></span>' : '') + num(x.n) + '</td>' +
+          '<td>' + (x.conAct ? num(x.dias / x.conAct) : '—') + '</td>' +
+          '<td>' + (x.con ? num(x.plazoCon / x.con) : '—') + '</td>' +
+          '<td>' + semaforoRazon(x.plazoCon ? x.diasCon / x.plazoCon : null) + '</td>' +
+          '<td>' + (x.con ? pct(x.fuera, x.con) : '—') + '</td></tr>');
+        if (abierto) bajar(x.hijos, nivel + 1, id);
+      });
+    })(raiz, 0, '');
+    $('matriz').innerHTML = '<thead><tr><th scope="col">' + (uno ? 'Etapa' : 'Trámite › etapa') + ' › subetapa › actividad</th>' +
+      '<th scope="col">Expedientes</th><th scope="col">Días en la actividad</th><th scope="col">Plazo (días)</th>' +
+      '<th scope="col">Días / plazo</th><th scope="col">Fuera de plazo</th></tr></thead><tbody>' +
+      (filas.join('') || '<tr><td colspan="6">Sin datos para este filtro.</td></tr>') + '</tbody>';
+    $('m-todo').textContent = Object.keys(abiertos).length ? 'Contraer todo' : 'Expandir todo';
+  }
+  $('matriz').addEventListener('click', function (ev) {
+    var b = ev.target.closest('.m-alt'); if (!b) return;
+    var id = b.getAttribute('data-id');
+    if (abiertos[id]) delete abiertos[id]; else abiertos[id] = true;
+    pintarMatriz();
+    var mismo = $('matriz').querySelector('.m-alt[data-id="' + CSS.escape(id) + '"]');
+    if (mismo) mismo.focus();   // redibujar no debe botar el foco del teclado
+  });
+  $('m-todo').addEventListener('click', function () {
+    if (Object.keys(abiertos).length) abiertos = {};
+    else (function marcar(nodos, ruta) {
+      nodos.forEach(function (x) {
+        var id = ruta + '/' + x.nombre;
+        if (x.hijos.length) { abiertos[id] = true; marcar(x.hijos, id); }
+      });
+    })(AGG.arbol(D, gf.act, !unTramite()), '');
+    pintarMatriz();
+  });
+
+  function pintarDetalle() {
+    var xs = gf.detalle.slice().sort(function (a, b) { return (b.quieto || 0) - (a.quieto || 0); });
+    $('d-sub').textContent = 'Los 25 con más días sin movimiento de cada región y de cada trámite, dentro del filtro' +
+      (xs.length ? ' (' + num(xs.length) + ')' : '') + '. Sin datos de solicitante ni funcionario.';
+    // Encabezado alineado como su columna: texto a la izquierda, cifras a la derecha.
+    $('detalle').innerHTML = '<thead><tr><th scope="col">Expediente</th><th scope="col" class="izq">Región</th><th scope="col" class="izq">Trámite</th>' +
+      '<th scope="col">Inicio</th><th scope="col">Días sin movimiento</th><th scope="col" class="izq">Actividad actual</th><th scope="col" class="izq">Rol</th>' +
+      '<th scope="col">Días / plazo</th></tr></thead><tbody>' + xs.map(function (x) {
+        return '<tr><th scope="row">' + esc(x.nro) + '</th><td class="izq">' + esc(x.region) + '</td><td class="izq">' + esc(x.tramite) +
+          '</td><td>' + (x.inicio ? fechaCorta(x.inicio) : '—') + '</td><td>' + (x.quieto == null ? '—' : num(x.quieto)) +
+          '</td><td class="izq">' + esc(x.nodo[2] || x.nodo[0]) + '</td><td class="izq">' + esc(x.rol) + '</td><td>' +
+          (x.dias == null ? '—' : num(x.dias) + (x.plazo ? ' / ' + num(x.plazo) : '')) + '</td></tr>';
+      }).join('') + (xs.length ? '' : '<tr><td colspan="8" class="izq">Ninguno de los más detenidos de cada región o trámite cae en este filtro. ' +
+        'Quita la región o el trámite para verlos.</td></tr>') + '</tbody>';
+  }
+
   // ---- desglose por región y familia de trámites (solo para el PDF) ----
   // Una sección por región y, dentro, un gráfico por familia: cada uno es un
   // cálculo aparte, con esa región y esos trámites fijados. Los demás filtros
@@ -1236,17 +2008,22 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
   function pintar() {
     r = AGG.calcular(D, filtro());
     if (!r) return;
+    cmp = AGG.comparacion(D, filtro());
     pintarEstado();
     // En el informe se dibujan las dos páginas: puede llevar secciones de ambas.
-    if (estado.pag === 'resumen' || informeActivo) { pintarKpis(); pintarGrafico(); pintarTabla(); pintarTramites(); }
-    if (estado.pag === 'territorio' || informeActivo) { pintarMapa(); pintarRanking(); }
+    if (estado.pag === 'resumen' || informeActivo) {
+      pintarKpis(); pintarGrafico(); pintarTabla(); pintarTramites(); pintarCascada(); pintarTasa();
+    }
+    if (estado.pag === 'territorio' || informeActivo) {
+      pintarMapa(); pintarRanking(); pintarDispersion(); pintarVariacion(); pintarComposicion();
+    }
+    if (estado.pag === 'gestion' || informeActivo) pintarGestion();
   }
   function cambio() { guardarHash(); sinTip(); pintar(); contarFiltros(); }
 
   function irA(pag) {
     estado.pag = pag;
-    $('p-resumen').hidden = pag !== 'resumen';
-    $('p-territorio').hidden = pag !== 'territorio';
+    PAGINAS.forEach(function (p) { $('p-' + p).hidden = p !== pag; });
     Array.prototype.forEach.call(document.querySelectorAll('.pag'), function (b) {
       if (b.getAttribute('data-pag') === pag) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
@@ -1287,6 +2064,15 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     }
     var mismo = panelT.querySelector(c.hasAttribute('data-todos') ? '[data-todos]' : 'input[value="' + CSS.escape(c.value) + '"]');
     if (mismo) mismo.focus();   // redibujar el panel no debe botar el foco del teclado
+    cambio();
+  });
+  panelT.addEventListener('click', function (ev) {
+    if (!ev.target.closest('[data-sin-hv]')) return;
+    // Redibujar el panel deja el botón fuera del documento: sin esto, el clic
+    // llega al documento como «clic fuera» y cierra el desplegable.
+    ev.stopPropagation();
+    ponerTramites(tramitesDelGrupo().filter(function (n) { return n !== HV; }));
+    panelT.querySelector('[data-sin-hv]').focus();
     cambio();
   });
   document.addEventListener('click', function (ev) {
@@ -1352,11 +2138,45 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     l.push('Filtros;Año=' + (f.anio || 'todos') + ';Región=' + ($('f-region').selectedOptions[0].text) +
       ';Grupo=' + (f.grupo || 'todos') + ';Trámite=' + (f.tramites ? f.tramites.join(', ') : 'todos'));
     if (estado.pag === 'resumen') {
-      l.push('Periodo;Ingresados;Finalizados;Saldo;Stock de casos al cierre');
-      r.serie.forEach(function (p) { l.push([p.etiqueta + (p.parcial ? ' (parcial)' : ''), p.ing, p.fin, p.ing - p.fin, p.moc].join(';')); });
+      var A = r.periodo.grano === 'mensual' && cmp ? cmp.mesesAnt : null;
+      l.push('Periodo;Ingresados;Finalizados;Saldo;Stock de casos al cierre;Finalizados por cada 100 ingresados' +
+        (A ? ';Ingresados ' + cmp.anterior + ';Finalizados ' + cmp.anterior : ''));
+      r.serie.forEach(function (p) {
+        var k = +p.etiqueta.slice(5, 7) - 1;
+        l.push([p.etiqueta + (p.parcial ? ' (parcial)' : ''), p.ing, p.fin, p.ing - p.fin, p.moc,
+                p.ing ? (p.fin / p.ing * 100).toFixed(1).replace('.', ',') : ''].concat(A ? [A.ing[k], A.fin[k]] : []).join(';'));
+      });
+    } else if (estado.pag === 'gestion') {
+      if (gf) {
+        // Cinco tablas, separadas por una línea en blanco: una por visual.
+        var q = function (s) { return '"' + String(s).replace(/"/g, '""') + '"'; };
+        var dec = function (x) { return x.toFixed(1).replace('.', ','); };
+        l.push('Foto del stock al ' + gf.fecha, '');
+        l.push('Antigüedad \\ Sin movimiento;' + gf.quieto.map(q).join(';'));
+        gf.eq.forEach(function (fila, e) { l.push([q(gf.edad[e])].concat(fila).join(';')); });
+        l.push('', 'Trámite;Expedientes;' + SEM.map(function (s) { return q(s[1]); }).join(';'));
+        AGG.semaforo(D, gf.act).forEach(function (x) {
+          l.push([q(x.nombre), x.n].concat(SEM.map(function (s) { return x[s[0]]; })).join(';'));
+        });
+        l.push('', 'Trámite;Etapa;Subetapa;Actividad;Expedientes;Días promedio en la actividad;Plazo promedio (días);Días / plazo;Fuera de plazo');
+        gf.act.forEach(function (x) {
+          l.push([q(D.tramites[x.t].nombre)].concat(x.nodo.map(q), [x.n, x.conAct ? dec(x.dias / x.conAct) : '',
+            x.con ? dec(x.plazoCon / x.con) : '', x.plazoCon ? dec(x.diasCon / x.plazoCon) : '', x.fuera]).join(';'));
+        });
+        l.push('', 'Rol;Expedientes;Con plazo;Fuera de plazo');
+        gf.rol.forEach(function (x) { if (x.n) l.push([q(x.nombre), x.n, x.con, x.fuera].join(';')); });
+        l.push('', 'Expediente;Región;Trámite;Inicio;Días sin movimiento;Actividad actual;Rol;Días en la actividad;Plazo (días)');
+        gf.detalle.forEach(function (x) {
+          l.push([q(x.nro), q(x.region), q(x.tramite), x.inicio || '', x.quieto == null ? '' : x.quieto,
+            q(x.nodo[2] || x.nodo[0]), q(x.rol), x.dias == null ? '' : x.dias, x.plazo == null ? '' : dec(x.plazo)].join(';'));
+        });
+      }
     } else {
-      l.push('Código;Región;Ingresados;Finalizados;Stock de casos al cierre de ' + r.corte);
-      r.porRegion.forEach(function (x) { l.push([x.codigo, '"' + x.nombre.replace(/"/g, '""') + '"', x.ing, x.fin, x.moc].join(';')); });
+      l.push('Código;Región;Ingresados;Finalizados;Stock de casos al cierre de ' + r.corte + ';Stock al cierre de ' + r.corteBase +
+        ';Variación;' + D.tramites.map(function (t) { return '"Stock ' + t.nombre.replace(/"/g, '""') + '"'; }).join(';'));
+      r.porRegion.forEach(function (x) {
+        l.push([x.codigo, '"' + x.nombre.replace(/"/g, '""') + '"', x.ing, x.fin, x.moc, x.mocBase, x.moc - x.mocBase].concat(x.mocPorTramite).join(';'));
+      });
     }
     var url = URL.createObjectURL(new Blob(['﻿' + l.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
     var a = document.createElement('a');
@@ -1374,6 +2194,15 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
         ultimoAncho = c.clientWidth; ultimoAlto = c.clientHeight; pintarGrafico();
       }
     }).observe($('grafico'));
+    // Los demás gráficos SVG, con la misma regla: se redibujan si su caja cambia.
+    [['cascada', 'resumen', pintarCascada], ['tasa', 'resumen', pintarTasa], ['dispersion', 'territorio', pintarDispersion]]
+      .forEach(function (g) {
+        var antes = '';
+        new ResizeObserver(function () {
+          var c = $(g[0]), k = c.clientWidth + 'x' + c.clientHeight;
+          if (r && k !== antes && (estado.pag === g[1] || informeActivo)) { antes = k; g[2](); }
+        }).observe($(g[0]));
+      });
   }
 
   // Los rótulos del gráfico se eligen midiendo el texto: se vuelve a dibujar
@@ -1391,7 +2220,8 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     informeActivo = true;
     tablaAbierta = $('g-tabla').open;
     document.body.classList.add('informe');
-    $('p-resumen').hidden = false; $('p-territorio').hidden = false; $('informe-glosario').hidden = false;
+    PAGINAS.forEach(function (p) { $('p-' + p).hidden = false; });
+    $('informe-glosario').hidden = false;
     Array.prototype.forEach.call(document.querySelectorAll('[data-sec]'), function (el) {
       el.classList.toggle('fuera', !tiene(el.getAttribute('data-sec')));
     });
@@ -1399,8 +2229,9 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     var tg = $('grafico').closest('.tarjeta');
     tg.classList.toggle('fuera', !tiene('grafico') && !tiene('tabla'));
     tg.classList.toggle('solo-tabla', !tiene('grafico') && tiene('tabla'));
-    $('p-resumen').classList.toggle('fuera', !['kpis', 'grafico', 'tabla', 'tramites'].some(tiene));
-    $('p-territorio').classList.toggle('fuera', !['mapa', 'ranking'].some(tiene));
+    $('p-resumen').classList.toggle('fuera', !SECS_RESUMEN.concat(['tabla']).some(tiene));
+    $('p-territorio').classList.toggle('fuera', !SECS_TERRITORIO.some(tiene));
+    $('p-gestion').classList.toggle('fuera', !SECS_GESTION.some(tiene));
 
     pintar();
     $('desglose').hidden = !tiene('desglose');
@@ -1415,7 +2246,7 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
       (D.origen === 'demo' ? ' · <b>Datos de ejemplo</b>, no son cifras del Ministerio' : '');
     $('i-fecha').innerHTML = '<b>Datos:</b> actualizados el ' + fechaHora(D.generado) + ' · informe generado el ' + fechaHora(new Date());
     // Chrome propone el título del documento como nombre del PDF.
-    document.title = 'Informe carga de expedientes ' + ($('f-anio').value || '1999-' + ANIO_ACTUAL);
+    document.title = 'Informe carga de expedientes en sistemas ' + ($('f-anio').value || '1999-' + ANIO_ACTUAL);
   }
   function salirInforme() {
     if (!informeActivo) return;
@@ -1432,7 +2263,9 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
   }
   // Ctrl+P sin pasar por el diálogo: informe de la página que se está viendo.
   window.addEventListener('beforeprint', function () {
-    if (!informeActivo) entrarInforme(estado.pag === 'resumen' ? ['kpis', 'grafico', 'tramites'] : ['mapa', 'ranking']);
+    if (!informeActivo) entrarInforme(estado.pag === 'resumen' ? SECS_RESUMEN
+      : estado.pag === 'gestion' ? SECS_GESTION.filter(function (s) { return s !== 'detalle'; })   // cientos de filas: solo desde el diálogo
+      : SECS_TERRITORIO);
   });
   window.addEventListener('afterprint', salirInforme);
 
