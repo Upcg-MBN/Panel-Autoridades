@@ -60,7 +60,7 @@ button{font:inherit; color:inherit}
   transition:background var(--duration-base) var(--ease-standard)}
 .btn-borde:hover{background:rgba(255,255,255,.12)}
 .filete{background:var(--accent-base)}
-.barra-pie{background:var(--primario-darken-2)}
+.barra-pie{background:var(--primario-darken-2); display:flex; align-items:center; justify-content:flex-end; padding:0 1rem; font:700 10px/1 var(--font-sans); color:var(--blanco-base)}
 
 /* ---------- Menú de páginas ---------- */
 .cuerpo{display:flex; min-height:0}
@@ -80,9 +80,10 @@ button{font:inherit; color:inherit}
 .pag[aria-current="page"]{background:var(--secundario-base); color:var(--primario-darken-1);
   border-left-color:var(--primario-darken-1); font-weight:500}
 .menu-pie{margin-top:auto; padding:1.5rem 1.375rem 0; border-top:1px solid var(--gris-10)}
-.menu-pie button{display:flex; align-items:center; gap:0.875rem; padding:0.25rem 0; border:0; background:none;
+.menu-pie a{text-decoration:none}
+.menu-pie button,.menu-pie a{display:flex; align-items:center; gap:0.875rem; padding:0.25rem 0; border:0; background:none;
   font-size:0.9375rem; color:var(--gris-60); cursor:pointer; white-space:nowrap}
-.menu-pie button:hover{color:var(--primario-darken-1)}
+.menu-pie button:hover,.menu-pie a:hover{color:var(--primario-darken-1)}
 
 /* ---------- Contenido ---------- */
 .contenido{flex:1; min-width:0; padding:2rem; display:flex; flex-direction:column; gap:1.5rem}
@@ -579,6 +580,7 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
       <button type="button" class="pag" data-pag="territorio" title="Territorio"><svg class="ico ico--24" viewBox="0 0 24 24" aria-hidden="true" data-i="mapa"></svg><span class="txt">Territorio</span></button>
       <button type="button" class="pag" data-pag="gestion" title="Gestión del stock"><svg class="ico ico--24" viewBox="0 0 24 24" aria-hidden="true" data-i="reloj"></svg><span class="txt">Gestión del stock</span></button>
       <div class="menu-pie">
+        <a href="https://lab-reportes.bienes.cl/" target="_top" title="Ir al Centro de Paneles"><svg class="ico ico--22" viewBox="0 0 24 24" aria-hidden="true" data-i="home"></svg><span class="txt">Centro de Paneles</span></a>
         <button type="button" id="abrir-glosario" title="Glosario de indicadores"><svg class="ico ico--22" viewBox="0 0 24 24" aria-hidden="true" data-i="ayuda"></svg><span class="txt">Glosario de indicadores</span></button>
       </div>
     </nav>
@@ -743,7 +745,7 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
       </section>
     </main>
   </div>
-  <div class="barra-pie"></div>
+  <div class="barra-pie"><span title="Versión del panel">v0</span></div>
 </div>
 
 <dialog id="glosario" aria-labelledby="glo-tit">
@@ -858,6 +860,7 @@ legend{padding:0; margin-bottom:0.25rem; font-size:0.75rem; font-weight:700; let
     menu: '<path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>',
     dashboard: '<path transform="translate(3 3)" d="M16 2v2h-4V2h4zM6 2v6H2V2h4zm10 8v6h-4v-6h4zM6 14v2H2v-2h4zM18 0h-8v6h8V0zM8 0H0v10h8V0zm10 8h-8v10h8V8zM8 12H0v6h8v-6z"/>',
     mapa: '<path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM10 5.47l4 1.4v11.66l-4-1.4V5.47zm-5 .99l3-1.01v11.7l-3 1.16V6.46zm14 11.08l-3 1.01V6.86l3-1.16v11.84z"/>',
+    home: '<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>',
     ayuda: '<path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>',
     globo: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>',
     calendario: '<path transform="translate(3 2)" d="M16 2h-1V0h-2v2H5V0H3v2H2C.89 2 .01 2.9.01 4L0 18c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 16H2V8h14v10zm0-12H2V4h14v2zM9 11h5v5H9v-5z"/>',
